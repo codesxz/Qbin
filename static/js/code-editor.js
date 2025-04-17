@@ -224,6 +224,12 @@ class QBinCodeEditor extends QBinEditorBase {
                 this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Equal, () => {
                     monaco.editor.getEditors()[0].getAction('editor.unfoldAll').run();
                 });
+                this.editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Enter,() => {
+                        // 使用 Monaco 的内置操作将光标移动到行尾
+                        this.editor.trigger('keyboard', 'cursorEnd', null);
+                        // 插入换行符
+                        this.editor.trigger('keyboard', 'type', { text: '\n' });
+                    });
                 // Remove the temporary class now that Monaco has loaded
                 const editorEl = document.getElementById('editor');
                 if (editorEl) {

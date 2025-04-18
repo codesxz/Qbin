@@ -5,14 +5,12 @@
  */
 import { Metadata } from "../types.ts";
 import { PASTE_STORE, CACHE_CHANNEL } from "../config/constants.ts";
-import { MetadataDB } from "../db/metadata.ts";
 import { checkPassword } from "./common.ts";
 
 export const memCache = new Map<string, Metadata | Record<string, unknown>>();
 export const cache = await caches.open("qbinv1");
 export const kv = await Deno.openKv();
 export const cacheBroadcast = new BroadcastChannel(CACHE_CHANNEL);
-
 
 cacheBroadcast.onmessage = async (event: MessageEvent) => {
   const { type, key, metadata } = event.data;
@@ -24,7 +22,7 @@ cacheBroadcast.onmessage = async (event: MessageEvent) => {
   }
 };
 
-export async function isCached(key: string, pwd?: string | undefined, pdb: MetadataDB): Promise<Metadata | null> {
+export async function isCached(key: string, pwd?: string | undefined, repo): Promise<Metadata | null> {
   const memData = memCache.get(key);
   if (memData && "pwd" in memData) {
     if ("pwd" in memData) return memData;
@@ -60,7 +58,7 @@ export async function isCached(key: string, pwd?: string | undefined, pdb: Metad
 
   // 解决pg到kv批量同步问题
   if (kvResult.value === true){
-    const dbData = await pdb.getByFkey(key);
+    const dbData = await repo.getByFkey(key);
     if (!dbData) return null;
     if (!checkPassword(dbData.pwd, pwd)) return null;
     await updateCache(key, dbData);
@@ -72,8 +70,7 @@ export async function isCached(key: string, pwd?: string | undefined, pdb: Metad
   return kvResult.value;
 }
 
-
-export async function checkCached(key: string, pwd?: string | undefined, pdb: MetadataDB): Promise<Metadata | null> {
+export async function checkCached(key: string, pwd?: string | undefined, repo): Promise<Metadata | null> {
   const memData = memCache.get(key);
   if (memData && "pwd" in memData) {
     if (!checkPassword(memData.pwd, pwd)) return null;
@@ -124,13 +121,13 @@ export async function checkCached(key: string, pwd?: string | undefined, pdb: Me
 /**
  * 从缓存中获取数据，如果缓存未命中，则从 KV 中获取并缓存
  */
-export async function getCachedContent(key: string, pwd?: string, pdb: MetadataDB): Promise<Metadata | null> {
+export async function getCachedContent(key: string, pwd?: string, repo): Promise<Metadata | null> {
   try {
-    const cache = await checkCached(key, pwd, pdb);
+    const cache = await checkCached(key, pwd, repo);
     if (cache === null) return cache;
     if (cache !== true && "content" in cache) return cache;
 
-    const dbData = await pdb.getByFkey(key);
+    const dbData = await repo.getByFkey(key);
     if (!dbData) return null;
     if (!checkPassword(dbData.pwd, pwd)) return null;
     await updateCache(key, dbData);

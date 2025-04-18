@@ -1,0 +1,10 @@
+{
+   "scripts": {
+      "db:generate": "drizzle-kit generate",
+      "db:migrate": "drizzle-kit migrate",
+      "db:push": "drizzle-kit push"
+   },
+   "devDependencies": {
+      "drizzle-kit": "^0.31.0"
+   }
+}

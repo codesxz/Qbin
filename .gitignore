@@ -1,5 +1,9 @@
+drizzle/
+node_modules/
 TEST/
 .github/
 .idea
 .env
 deno.lock
+local.db
+pnpm-lock.yaml

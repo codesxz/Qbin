@@ -1,12 +1,8 @@
 /**
  * 全局常量配置
  */
-import { load } from "https://deno.land/std/dotenv/mod.ts";
-const env = await load();
+import {get_env} from "./env.ts";
 
-export function get_env(name){
-  return Deno.env.get(name) || env[name]
-}
 
 export const TOKEN_EXPIRE = parseInt(get_env("TOKEN_EXPIRE") || "31536000"); // JWT 过期时长(秒)
 export const MAX_UPLOAD_FILE_SIZE = parseInt(get_env("MAX_UPLOAD_FILE_SIZE") || "52428800");  // 5MB

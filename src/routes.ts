@@ -1,5 +1,5 @@
 import { Router, Context } from "https://deno.land/x/oak/mod.ts";
-import { MetadataDB } from "./db/metadata.ts";
+import { createMetadataRepository } from "./db/db.ts";
 import { getCachedContent, updateCache, kv, isCached, memCache, cacheBroadcast } from "./utils/cache.ts";
 import { getTimestamp, cyrb53, checkPassword, generateKey } from "./utils/common.ts";
 import {
@@ -46,7 +46,7 @@ function parsePathParams(params: Record<string, string>) {
 /**
  * 上传（POST/PUT）处理函数
  */
-async function handleContentUpload(ctx: Context<AppState>, key: string, pwd: string, pdb: MetadataDB) {
+async function handleContentUpload(ctx: Context<AppState>, key: string, pwd: string, repo) {
   const request = ctx.request;
   const headers = request.headers;
 
@@ -130,9 +130,12 @@ async function handleContentUpload(ctx: Context<AppState>, key: string, pwd: str
 
   queueMicrotask(async () => {
     try {
-      const fkey = await pdb.create(metadata);
+      const result = await repo.create(metadata);
+      if (!result) {
+        throw new PasteError(400, "创建数据失败!");
+      }
       await updateCache(key, metadata);
-      console.log("Background DB create success:", fkey);
+      console.log("Background DB create success:", metadata.fkey);
     } catch (err) {
       console.error("Background DB create error:", err);
       // 保证原子性 - 使用带重试的清理函数
@@ -144,7 +147,7 @@ async function handleContentUpload(ctx: Context<AppState>, key: string, pwd: str
   return new Response(ctx, 200, ResponseMessages.SUCCESS, { key, pwd, url: `${request.url.origin}/r/${key}/${pwd}` })
 }
 
-async function handleContentUpdate(ctx: Context<AppState>, key: string, pwd: string, pdb: MetadataDB) {
+async function handleContentUpdate(ctx: Context<AppState>, key: string, pwd: string, repo) {
   const request = ctx.request;
   const headers = request.headers;
   // const clientIp = headers.get("cf-connecting-ip") || request.ip;
@@ -228,9 +231,9 @@ async function handleContentUpdate(ctx: Context<AppState>, key: string, pwd: str
   };
   queueMicrotask(async () => {
     try {
-      const result = await pdb.update(key, metadata);
+      const result = await repo.update(key, metadata);
       if (!result) {
-        throw new PasteError(400, "PG更新数据失败!");
+        throw new PasteError(400, "更新数据失败!");
       }
       await updateCache(key, metadata);
       cacheBroadcast.postMessage({ type: "update", key, metadata });  // 通知更新状态
@@ -263,10 +266,10 @@ async function handleContentUpdate(ctx: Context<AppState>, key: string, pwd: str
  * 将Postgres数据库中的所有fkeys同步到Deno KV存储
  * 使用批处理和原子操作实现
  */
-async function syncPostgresToKV(ctx: Context<AppState>, pdb: MetadataDB) {
+async function syncPostgresToKV(ctx: Context<AppState>, repo) {
   try {
     // 从Postgres数据库获取所有fkeys
-    const pgFkeys = await pdb.getAllFkeys();
+    const pgFkeys = await repo.getAllFkeys();
     const pgFkeysSet = new Set(pgFkeys);
 
     // 追踪同步统计信息
@@ -411,15 +414,15 @@ router
     if (key === null) {
       return new Response(ctx, 403, ResponseMessages.PATH_UNAVAILABLE);
     }
-    const pdb = MetadataDB.getInstance();
-    const _metadata = await isCached(key, pwd, pdb);
+    const repo = await createMetadataRepository();
+    const _metadata = await isCached(key, pwd, repo);
     if (_metadata?.email === undefined || (_metadata.expire || 0) < getTimestamp()) {
       return new Response(ctx, 404, ResponseMessages.CONTENT_NOT_FOUND);
     }
     if (_metadata.pwd && !checkPassword(_metadata.pwd, pwd)) {
       return new Response(ctx, 403, ResponseMessages.PASSWORD_INCORRECT);
     }
-    const metadata = await getCachedContent(key, pwd, pdb);
+    const metadata = await getCachedContent(key, pwd, repo);
     if(!(metadata && "content" in metadata)){
       return new Response(ctx, 404, ResponseMessages.CONTENT_NOT_FOUND);
     }
@@ -436,8 +439,8 @@ router
     if (key === null) {
       return new Response(ctx, 403, ResponseMessages.PATH_UNAVAILABLE);
     }
-    const pdb = MetadataDB.getInstance();
-    const _metadata = await isCached(key, pwd, pdb);
+    const repo = await createMetadataRepository();
+    const _metadata = await isCached(key, pwd, repo);
     if (_metadata?.email === undefined || (_metadata.expire || 0) < getTimestamp()) {
       ctx.response.status = 404;
       return;
@@ -458,8 +461,8 @@ router
     if(reservedPaths.has(key.toLowerCase())){
       return new Response(ctx, 403, ResponseMessages.PATH_RESERVED);
     }
-    const pdb = MetadataDB.getInstance();
-    const metadata = await isCached(key, pwd, pdb);
+    const repo = await createMetadataRepository();
+    const metadata = await isCached(key, pwd, repo);
 
     if(metadata && "email" in metadata) {
       if (metadata.expire > getTimestamp()){
@@ -468,9 +471,9 @@ router
           return new Response(ctx, 403, ResponseMessages.PERMISSION_DENIED);
         }
       }
-      await handleContentUpdate(ctx, key, pwd || "", pdb);  // 更新
+      await handleContentUpdate(ctx, key, pwd || "", repo);  // 更新
     }else {
-      await handleContentUpload(ctx, key, pwd || "", pdb);  // 创建
+      await handleContentUpload(ctx, key, pwd || "", repo);  // 创建
     }
   })
   .put("/s/:key/:pwd?", async (ctx) => {
@@ -481,8 +484,8 @@ router
     if(reservedPaths.has(key.toLowerCase())){
       return new Response(ctx, 403, ResponseMessages.PATH_RESERVED);
     }
-    const pdb = MetadataDB.getInstance();
-    const metadata = await isCached(key, pwd, pdb);
+    const repo = await createMetadataRepository();
+    const metadata = await isCached(key, pwd, repo);
     if(metadata && "email" in metadata) {
       if (metadata.expire > getTimestamp()){
         const email = await ctx.state.session?.get("user")?.email;
@@ -490,9 +493,9 @@ router
           return new Response(ctx, 403, ResponseMessages.PERMISSION_DENIED);
         }
       }
-      await handleContentUpdate(ctx, key, pwd || "", pdb);  // 更新
+      await handleContentUpdate(ctx, key, pwd || "", repo);  // 更新
     }else {
-      await handleContentUpload(ctx, key, pwd || "", pdb);
+      await handleContentUpload(ctx, key, pwd || "", repo);
     }
   })
   .delete("/d/:key/:pwd?", async (ctx) => {
@@ -505,8 +508,8 @@ router
       return new Response(ctx, 403, ResponseMessages.PATH_RESERVED);
     }
 
-    const pdb = MetadataDB.getInstance();
-    const metadata = await isCached(key, pwd, pdb);
+    const repo = await createMetadataRepository();
+    const metadata = await isCached(key, pwd, repo);
     if (!metadata || (metadata.expire || 0) < getTimestamp()) {
       return new Response(ctx, 404, ResponseMessages.CONTENT_NOT_FOUND);
     }
@@ -531,8 +534,8 @@ router
     cacheBroadcast.postMessage({ type: "delete", key, metadata });  // 通知删除状态
     // 异步删除数据库记录
     queueMicrotask(async () => {
-      await pdb.update(key, {content: new Uint8Array(0), expire: metadata.expire}); // 更新三级缓存, 执行真实删除
-      // await pdb.delete(key);     // TODO 删除异常处理
+      await repo.update(key, {content: new Uint8Array(0), expire: metadata.expire}); // 更新三级缓存, 执行真实删除
+      // await repo.delete(key);     // TODO 删除异常处理
     });
 
     ctx.response.headers.set("Content-Type", "application/json");
@@ -585,8 +588,8 @@ router
 
     const offset = (page - 1) * pageSize;
     try {
-      const pdb = MetadataDB.getInstance();
-      const { items, total } = await pdb.findByEmail(user.email, pageSize, offset);
+      const repo = await createMetadataRepository();
+      const { items, total } = await repo.paginateByEmail(user.email, pageSize, offset);
 
       const safeItems = items.map(item => ({
         fkey: item.fkey,
@@ -630,8 +633,8 @@ router
 
     const offset = (page - 1) * pageSize;
     try {
-      const pdb = MetadataDB.getInstance();
-      const { items, total } = await pdb.listAll(pageSize, offset);
+      const repo = await createMetadataRepository();
+      const { items, total } = await repo.listAlive(pageSize, offset);
 
       const totalPages = Math.ceil(total / pageSize);
       return new Response(ctx, 200, ResponseMessages.SUCCESS, {
@@ -656,8 +659,8 @@ router
     if (!(email !== undefined && EMAIL === email)) {
       return new Response(ctx, 403, ResponseMessages.ADMIN_REQUIRED);
     }
-    const pdb = MetadataDB.getInstance();
-    return await syncPostgresToKV(ctx, pdb);
+    const repo = await createMetadataRepository();
+    return await syncPostgresToKV(ctx, repo);
   })    // kv与pg同步
   // .post("/api/user/shares", async (ctx) => {
   //   return new Response(ctx, 200, ResponseMessages.SUCCESS, [{ }]);

@@ -1,9 +1,10 @@
 import {Context} from "https://deno.land/x/oak/mod.ts";
-import {OAuth2Client} from "jsr:@cmd-johnson/oauth2-client@^2.0.0";
+import {OAuth2Client} from "jsr:@cmd-johnson/oauth2-client";
 import {generateJwtToken, verifyJwtToken} from "../utils/crypto.ts";
 import {kv} from "../utils/cache.ts";
 import {PasteError, Response} from "../utils/response.ts";
-import {PASSWORD, exactPaths, HEADERS, prefixPaths, TOKEN_EXPIRE, get_env, EMAIL, ISDEMO} from "../config/constants.ts";
+import {PASSWORD, exactPaths, HEADERS, prefixPaths, TOKEN_EXPIRE, EMAIL, ISDEMO} from "../config/constants.ts";
+import {get_env} from "../config/env.ts";
 
 
 // 定义 OAuth2 提供商配置

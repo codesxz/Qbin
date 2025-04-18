@@ -2,8 +2,12 @@
   "tasks": {
     "start": "deno run --allow-net --allow-env --allow-read --unstable-kv --unstable-broadcast-channel index.ts"
   },
-  "imports": {},
-  "compilerOptions": {
-    "strict": true
+  "imports": {
+    "@libsql/client": "npm:@libsql/client@^0.15.4",
+    "@types/pg": "npm:@types/pg@^8.11.13",
+    "drizzle-kit": "npm:drizzle-kit@^0.30.6",
+    "drizzle-orm": "npm:drizzle-orm@^0.41.0",
+    "postgres": "npm:postgres@^3.4.5",
+    "pg": "npm:pg@^8.14.1"
   }
 }

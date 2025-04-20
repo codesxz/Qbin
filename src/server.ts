@@ -1,6 +1,6 @@
 import { Application } from "https://deno.land/x/oak/mod.ts";
 import { AppState } from "./types.ts";
-import router from "./routes.ts";
+import router from "./routes/index.ts";
 import { errorMiddleware } from "./middlewares/error.ts";
 import { authMiddleware } from "./middlewares/auth.ts";
 import { etagMiddleware } from "./middlewares/etag.ts";

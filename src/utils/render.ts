@@ -57,7 +57,7 @@ export async function getFONTS(ctx, pathname, status=200): Promise<string> {
   } catch (error) {}
 }
 
-export async function renderHtml(ctx, status=200): Promise<string> {
+export async function getRenderHtml(ctx, status=200): Promise<string> {
   ctx.response.status = status;
   ctx.response.headers.set("Content-Type", "text/html; charset=utf-8");
   // ctx.response.headers.set("Cache-Control", "public, max-age=300");  // public, max-age=3600

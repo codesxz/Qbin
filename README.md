@@ -90,13 +90,13 @@ docker pull naiher/qbin:latest
 # 启动容器
 docker run -d -p 8000:8000 \
   -e JWT_SECRET="your_jwt_secret" \
-  -e ADMIN_PASSWORD="qbin" \
   -e ADMIN_EMAIL="admin@qbin.github" \
+  -e ADMIN_PASSWORD="qbin" \
   -e DB_CLIENT="sqlite" \
   -e ENABLE_ANONYMOUS_ACCESS="1" \
   -v ~/qbin-data:/app/data \
   --name qbin  \
-  --restart always	\
+  --restart always  \
   naiher/qbin
 ```
 

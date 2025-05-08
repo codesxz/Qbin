@@ -159,7 +159,9 @@ export async function updateCache(key: string, metadata: Metadata): Promise<void
       "x-uname": metadata.uname || "",
       "x-hash": metadata.hash || "",
     }
+    console.log(headers)
     const content = metadata.content || new Uint8Array(0);
+    console.log(content)
     await cache.put(cacheKey, new Response(content, { headers }));
   } catch (error) {
     console.error('Cache update error:', error);
@@ -172,7 +174,6 @@ export async function updateCache(key: string, metadata: Metadata): Promise<void
 export async function deleteCache(key: string, meta) {
   try {
     memCache.set(key, {'pwd': meta.pwd, expire: meta.expire});
-    delete meta.content;
     if (meta.expire > 0) meta.expire = -meta.expire;
     await updateCache(key, meta)
   } catch (error) {

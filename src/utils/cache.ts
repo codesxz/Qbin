@@ -1,33 +1,15 @@
 /**
  * 多级缓存管理
  * - 内存 (memCache)
- * - Cache API (Deno Deploy KV-like)
  * - Deno KV (for meta) + Postgres (最终存储)
  */
-import {
-  CACHE_CHANNEL,
-  DENO_KV_ACCESS_TOKEN,
-  DENO_KV_PROJECT_ID,
-  DENO_KV_PROJECT_ID_REGEX,
-  MAX_CACHE_SIZE,
-  PASTE_STORE
-} from "../config/constants.ts";
 import { Metadata } from "../utils/types.ts";
+import { PASTE_STORE, CACHE_CHANNEL, MAX_CACHE_SIZE } from "../config/constants.ts";
 import { checkPassword } from "./validator.ts";
 
-
 export const memCache = new Map<string, Metadata | Record<string, unknown>>();
-export const kv = await ((() => {
-  const projectId = DENO_KV_PROJECT_ID?.trim() || "";
-  const accessToken = DENO_KV_ACCESS_TOKEN?.trim() || "";
-
-  if (projectId && accessToken && DENO_KV_PROJECT_ID_REGEX.test(projectId)) {
-    return Deno.openKv(`https://api.deno.com/databases/${projectId}/connect`, {
-      accessToken: accessToken,
-    });
-  }
-  return Deno.openKv();
-})());
+export const cache = await caches.open("qbinv1.4");
+export const kv = await Deno.openKv();
 export const cacheBroadcast = new BroadcastChannel(CACHE_CHANNEL);
 
 cacheBroadcast.onmessage = async (event: MessageEvent) => {
@@ -44,6 +26,28 @@ export async function isCached(key: string, pwd?: string | undefined, repo): Pro
   const memData = memCache.get(key);
   if (memData && "pwd" in memData) {
     if ("pwd" in memData) return memData;
+  }
+
+  const cacheKey = new Request(`http://qbinv1.4/p/${key}`);
+  const cacheData = await cache.match(cacheKey);
+  if (cacheData) {
+    const headers = cacheData.headers;
+    const cachedPwd = headers.get("x-pwd") || "";
+    const metadata: Metadata = {
+      fkey: key,
+      time: parseInt(headers.get("x-time") ?? "0"),
+      expire: parseInt(headers.get("x-expire") ?? "-1"),
+      ip: headers.get("x-ip") ?? "",
+      content: await cacheData.arrayBuffer(),
+      mime: headers.get("Content-Type") ?? "application/octet-stream",
+      len: parseInt(headers.get("Content-Length") ?? "0"),
+      pwd: cachedPwd || "",
+      email: headers.get("x-email") || "",
+      uname: headers.get("x-uname") ?? undefined,
+      hash: parseInt(headers.get("x-hash") ?? "0"),
+    };
+    memCache.set(key, metadata);
+    return metadata;
   }
 
   const kvResult = await kv.get([PASTE_STORE, key]);
@@ -71,6 +75,35 @@ export async function checkCached(key: string, pwd?: string | undefined, repo): 
   if (memData && "pwd" in memData) {
     if (!checkPassword(memData.pwd, pwd)) return null;
     if ("content" in memData) return memData;
+  }
+
+  const cacheKey = new Request(`http://qbinv1.4/p/${key}`);
+  const cacheData = await cache.match(cacheKey);
+  if (cacheData) {
+    const headers = cacheData.headers;
+    const cachedPwd = headers.get("x-pwd") || "";
+    if (cachedPwd && cachedPwd !== pwd) {
+        memCache.set(key, {'pwd': cachedPwd});   // 减少内查询
+        return null;
+    }
+    const metadata: Metadata = {
+      fkey: key,
+      time: parseInt(headers.get("x-time") ?? "0"),
+      expire: parseInt(headers.get("x-expire") ?? "-1"),
+      ip: headers.get("x-ip") ?? "",
+      content: await cacheData.arrayBuffer(),
+      mime: headers.get("Content-Type") ?? "application/octet-stream",
+      len: parseInt(headers.get("Content-Length") ?? "0"),
+      pwd: cachedPwd || "",
+      email: headers.get("x-email") || "",
+      uname: headers.get("x-uname") ?? undefined,
+      hash: parseInt(headers.get("x-hash") ?? "0"),
+    };
+    memCache.set(key, metadata);
+    return metadata;
+  }
+  else if(memData && "pwd" in memData){
+    return memData;
   }
 
   const kvResult = await kv.get([PASTE_STORE, key]);
@@ -111,6 +144,23 @@ export async function getCachedContent(key: string, pwd?: string, repo): Promise
 export async function updateCache(key: string, metadata: Metadata): Promise<void> {
   try {
     if(metadata.len <= MAX_CACHE_SIZE) memCache.set(key, metadata);
+    if (metadata.len > 5242880) return;
+    const cacheKey = new Request(`http://qbinv1.4/p/${key}`);
+    const headers = {
+      'Content-Type': metadata.mime,
+      'Content-Length': metadata.len,
+      'Cache-Control': 'max-age=604800',
+      'x-time': metadata.time,
+      'x-expire': metadata.expire,
+      'x-ip': metadata.ip,
+      'x-pwd': metadata.pwd || "",
+      'x-fkey': key,
+      'x-email': metadata.email,
+      "x-uname": metadata.uname || "",
+      "x-hash": metadata.hash || "",
+    }
+    const content = metadata.content || new Uint8Array(0);
+    await cache.put(cacheKey, new Response(content, { headers }));
   } catch (error) {
     console.error('Cache update error:', error);
   }
@@ -122,6 +172,9 @@ export async function updateCache(key: string, metadata: Metadata): Promise<void
 export async function deleteCache(key: string, meta) {
   try {
     memCache.set(key, {'pwd': meta.pwd, expire: meta.expire});
+    delete meta.content;
+    if (meta.expire > 0) meta.expire = -meta.expire;
+    await updateCache(key, meta)
   } catch (error) {
     console.error('Cache deletion error:', error);
   }

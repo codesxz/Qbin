@@ -14,7 +14,7 @@ services:
       - TOKEN_EXPIRE=31536000
       - MAX_UPLOAD_FILE_SIZE=52428800
       - DB_CLIENT=sqlite
-      - DATABASE_URL="file:/app/src/qbin_local.db"
+      - DATABASE_URL="file:/app/data/qbin_local.db"
 
       # GitHub OAuth配置（可选，如需使用请取消注释并填写）
       # - GITHUB_CLIENT_ID=your_github_client_id

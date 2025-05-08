@@ -5,7 +5,7 @@ import {registerAdapter} from "./registry.ts";
 
 
 registerAdapter("sqlite", async () => {
-    const raw = get_env("SQLITE_URL", "./src/qbin_local.db");
+    const raw = get_env("SQLITE_URL", "./data/qbin_local.db");
     const url = /^(?:file:|https?:)/.test(raw) ? raw : `file:${raw}`;
     const authToken = get_env("SQLITE_AUTH_TOKEN");
     const client = createClient({ url, authToken });

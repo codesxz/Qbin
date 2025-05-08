@@ -3,7 +3,7 @@ FROM denoland/deno:2.3.1 AS build
 
 ARG DB_CLIENT=sqlite
 ENV DB_CLIENT=${DB_CLIENT}
-ENV DATABASE_URL="file:/app/src/qbin_local.db"
+ENV SQLITE_URL="file:/app/data/qbin_local.db"
 
 WORKDIR /app
 COPY . .
@@ -23,18 +23,16 @@ RUN sed -i -e 's/"deno"/"no-deno"/' node_modules/@libsql/client/package.json && 
 
 # ──────── runtime stage ───────────────────
 FROM denoland/deno:2.3.1
-WORKDIR /app
 
 ENV DB_CLIENT=sqlite
-ENV DATABASE_URL="file:/app/src/qbin_local.db"
+ENV SQLITE_URL="file:/app/data/qbin_local.db"
 
+WORKDIR /app
 COPY --from=build /app /app
+RUN mkdir -p /app/data && chown -R deno:deno /app
 
-# 确保运行时所有目录都有正确的权限
-RUN chown -R deno:deno /app
-
-VOLUME ["/app/src"]
+USER deno
+WORKDIR /app
 
 EXPOSE 8000
-USER deno
 CMD ["run", "-NER", "--allow-ffi", "--allow-sys", "--unstable-kv", "--unstable-broadcast-channel", "index.ts"]

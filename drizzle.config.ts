@@ -7,7 +7,7 @@ if(client === "postgres"){
   dbCredentials["url"] = Deno.env.get("DATABASE_URL");
 } else if(client === "sqlite"){
   // client = 'turso';
-  dbCredentials["url"] = Deno.env.get("SQLITE_URL") || "file:src/qbin_local.db";
+  dbCredentials["url"] = Deno.env.get("SQLITE_URL") || "file:data/qbin_local.db";
   dbCredentials["authToken"] = Deno.env.get("SQLITE_AUTH_TOKEN");
 }
 

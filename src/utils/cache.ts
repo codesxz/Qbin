@@ -159,9 +159,7 @@ export async function updateCache(key: string, metadata: Metadata): Promise<void
       "x-uname": metadata.uname || "",
       "x-hash": metadata.hash || "",
     }
-    console.log(headers)
     const content = metadata.content || new Uint8Array(0);
-    console.log(content)
     await cache.put(cacheKey, new Response(content, { headers }));
   } catch (error) {
     console.error('Cache update error:', error);

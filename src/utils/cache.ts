@@ -8,7 +8,7 @@ import { PASTE_STORE, CACHE_CHANNEL, MAX_CACHE_SIZE } from "../config/constants.
 import { checkPassword } from "./validator.ts";
 
 export const memCache = new Map<string, Metadata | Record<string, unknown>>();
-export const cache = await caches.open("qbinv1.4");
+export const cache = await caches.open("qbinv4");
 export const kv = await Deno.openKv();
 export const cacheBroadcast = new BroadcastChannel(CACHE_CHANNEL);
 
@@ -28,7 +28,7 @@ export async function isCached(key: string, pwd?: string | undefined, repo): Pro
     if ("pwd" in memData) return memData;
   }
 
-  const cacheKey = new Request(`http://qbinv1.4/p/${key}`);
+  const cacheKey = new Request(`http://qbinv4/p/${key}`);
   const cacheData = await cache.match(cacheKey);
   if (cacheData) {
     const headers = cacheData.headers;
@@ -77,7 +77,7 @@ export async function checkCached(key: string, pwd?: string | undefined, repo): 
     if ("content" in memData) return memData;
   }
 
-  const cacheKey = new Request(`http://qbinv1.4/p/${key}`);
+  const cacheKey = new Request(`http://qbinv4/p/${key}`);
   const cacheData = await cache.match(cacheKey);
   if (cacheData) {
     const headers = cacheData.headers;
@@ -145,7 +145,7 @@ export async function updateCache(key: string, metadata: Metadata): Promise<void
   try {
     if(metadata.len <= MAX_CACHE_SIZE) memCache.set(key, metadata);
     if (metadata.len > 5242880) return;
-    const cacheKey = new Request(`http://qbinv1.4/p/${key}`);
+    const cacheKey = new Request(`http://qbinv4/p/${key}`);
     const headers = {
       'Content-Type': metadata.mime,
       'Content-Length': metadata.len,

@@ -6,8 +6,17 @@
   > ✨ 轻量的 Cloud Note & PasteBin 替代方案，一键保存文本、代码、图片、视频等任意内容，分享更便捷！
 
   [简体中文] · [**English**](README_EN.md) · [演示站点](https://qbin.me) · [使用文档](Docs/document.md) · [自托管教程](Docs/self-host.md) · [接口文档](Docs/REST%20API.md)
-</div>
 
+<!-- SHIELD GROUP -->
+
+[![][docker-pulls-shield]][deno-link]
+[![][deno-shield]][deno-link]
+[![][latest-version-shield]][latest-version-link]
+[![][github-stars-shield]][github-stars-link]
+[![][github-license-shield]][github-license-link]
+[![Telegram][telegram-shield]][telegram-url]
+
+</div>
 
 ## 🖼️ 功能预览
 Mobile
@@ -72,7 +81,7 @@ QBin 专注于「快速、安全、便捷」的在线编辑与内容分享，适
 ### Docker Compose (推荐)
 
 ```bash
-git clone https://github.com/Quick-Bin/qbin.git
+git clone https://github.com/quick-bin/qbin.git
 cd qbin
 docker-compose up -d
 ```
@@ -170,9 +179,18 @@ docker run -d -p 8000:8000 \
 让我们共建开放、高效的云上存储与分享新生态！
 
 ## History
-<a href="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history?repo_id=951259895" target="_blank" style="display: block" align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history/thumbnail.png?repo_id=951259895&image_size=auto&color_scheme=dark" width="721" height="auto">
-    <img alt="Star History of Quick-Bin/qbin" src="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history/thumbnail.png?repo_id=951259895&image_size=auto&color_scheme=light" width="721" height="auto">
-  </picture>
-</a>
+![Star History](https://api.star-history.com/svg?repos=quick-bin/qbin&type=Date)
+
+<!-- LINK GROUP -->
+[docker-pulls-link]: https://hub.docker.com/r/naiher/qbin
+[docker-pulls-shield]: https://img.shields.io/docker/pulls/naiher/qbin?style=flat-square&logo=docker&labelColor=black
+[telegram-shield]: https://img.shields.io/badge/Telegram-Join-0088cc?style=flat-square&logo=telegram&labelColor=black
+[telegram-url]: https://t.me/+eNkNp6UzSD5hYTIx
+[latest-version-shield]: https://img.shields.io/github/v/release/quick-Bin/qbin?style=flat-square&label=latest%20version&labelColor=black
+[latest-version-link]: https://github.com/Quick-Bin/Qbin/releases
+[github-stars-shield]: https://img.shields.io/github/stars/quick-bin/qbin?style=flat-square&logo=github&labelColor=black
+[github-stars-link]: https://github.com/quick-bin/qbin/stargazers
+[github-license-shield]: https://img.shields.io/github/license/quick-bin/qbin?style=flat-square&logo=github&labelColor=black
+[github-license-link]: https://github.com/quick-bin/qbin/issues
+[deno-link]: https://qbin.me
+[deno-shield]: https://img.shields.io/website?down_message=offline&label=Deno&labelColor=black&logo=deno&style=flat-square&up_message=online&url=https%3A%2F%2Fqbin.me

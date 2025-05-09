@@ -311,25 +311,19 @@ class QBinViewer {
 
     async renderError(message) {
         this.cherryContainer.innerHTML = '';
-        const errorComponent = `
+        this.cherryContainer.innerHTML = `
 <div class="modern-error-container">
     <div class="error-icon-wrapper">
         <div class="error-icon">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
-                <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="12" cy="16" r="1" fill="currentColor"/>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24"><rect width="24" height="24" fill="none"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path stroke-dasharray="64" stroke-dashoffset="64" d="M12 3c4.97 0 9 4.03 9 9c0 4.97 -4.03 9 -9 9c-4.97 0 -9 -4.03 -9 -9c0 -4.97 4.03 -9 9 -9Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.18s" values="64;0"/></path><path stroke-dasharray="8" stroke-dashoffset="8" d="M12 7v6"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.18s" dur="0.06s" values="8;0"/><animate attributeName="stroke-width" begin="0.54s" dur="0.9s" keyTimes="0;0.1;0.2;0.3;1" repeatCount="indefinite" values="1.5;2;2;1.5;1.5"/></path><path stroke-dasharray="2" stroke-dashoffset="2" d="M12 17v0.01"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.24s" dur="0.06s" values="2;0"/><animate attributeName="stroke-width" begin="0.63s" dur="0.9s" keyTimes="0;0.1;0.2;0.3;1" repeatCount="indefinite" values="1.5;2;2;1.5;1.5"/></path></g></svg>
         </div>
     </div>
     <div class="error-content">
-        <h3 class="error-title">出错了</h3>
+        <h3 class="error-title">404</h3>
         <p class="error-message">${message}</p>
     </div>
 </div>
 `;
-
-        this.cherryContainer.innerHTML = errorComponent;
         this.hideLoading();
     }
 

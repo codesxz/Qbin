@@ -992,10 +992,7 @@ html[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
 }
 
 .error-icon {
-    width: 80px;
-    height: 80px;
     color: var(--error);
-    animation: errorPulse 2s ease-in-out infinite;
 }
 
 @keyframes errorPulse {
@@ -1044,11 +1041,6 @@ html[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
     .error-icon-wrapper {
         margin-right: 0;
         margin-bottom: 20px;
-    }
-    
-    .error-icon {
-        width: 56px;
-        height: 56px;
     }
     
     .error-title {

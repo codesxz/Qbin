@@ -56,15 +56,6 @@ export async function isCached(key: string, pwd?: string | undefined, repo): Pro
     return null;
   }
 
-  // 解决pg到kv批量同步问题
-  if (kvResult.value === true){
-    const dbData = await repo.getByFkey(key);
-    if (!dbData) return null;
-    if (!checkPassword(dbData.pwd, pwd)) return null;
-    await updateCache(key, dbData);
-    delete dbData.content;
-    kvResult.value = dbData;
-  }
   // kv不同步
   memCache.set(key, kvResult.value);   // 减少内查询
   return kvResult.value;

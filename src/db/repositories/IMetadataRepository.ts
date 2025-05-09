@@ -19,7 +19,7 @@ export interface IMetadataRepository {
     email: string,
     limit?: number,
     offset?: number,
-  ): Promise<{ items: Metadata[]; total: number }>;
+  ): Promise<{ items: Omit<Metadata, 'content'>[]; total: number }>;
   /**
    * 管理员分页查询
    */

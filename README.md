@@ -9,7 +9,7 @@
 
 <!-- SHIELD GROUP -->
 
-[![][docker-pulls-shield]][deno-link]
+[![][docker-pulls-shield]][docker-pulls-link]
 [![][deno-shield]][deno-link]
 [![][latest-version-shield]][latest-version-link]
 [![][github-stars-shield]][github-stars-link]
@@ -179,7 +179,12 @@ docker run -d -p 8000:8000 \
 让我们共建开放、高效的云上存储与分享新生态！
 
 ## History
-![Star History](https://api.star-history.com/svg?repos=quick-bin/qbin&type=Date)
+<a href="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history?repo_id=951259895" target="_blank" style="display: block" align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history/thumbnail.png?repo_id=951259895&image_size=auto&color_scheme=dark" width="721" height="auto">
+    <img alt="Star History of Quick-Bin/qbin" src="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history/thumbnail.png?repo_id=951259895&image_size=auto&color_scheme=light" width="721" height="auto">
+  </picture>
+</a>
 
 <!-- LINK GROUP -->
 [docker-pulls-link]: https://hub.docker.com/r/naiher/qbin

@@ -122,23 +122,34 @@ class MetadataRepository implements IMetadataRepository {
 
   /** 普通用户分页查询 */
   async paginateByEmail(email: string, limit = 10, offset = 0) {
-    const now = getTimestamp();
+      const now = getTimestamp();
 
-    const [{ total }] = await this.run(() =>
-      this.db.select({ total: count() }).from(this.t)
-        .where(and(eq(this.t.email, email), gt(this.t.expire, now)))
-        .execute()) as [{ total: bigint | number }];
-    const totalNumber = Number(total ?? 0);
-    if (offset >= totalNumber) return { items: [], total: totalNumber };
+      const [{ total }] = await this.run(() =>
+        this.db.select({ total: count() }).from(this.t)
+          .where(and(eq(this.t.email, email), gt(this.t.expire, now)))
+          .execute()) as [{ total: bigint | number }];
+      const totalNumber = Number(total ?? 0);
+      if (offset >= totalNumber) return { items: [], total: totalNumber };
 
-    const items = await this.run(() =>
-      this.db.select().from(this.t)
-        .where(and(eq(this.t.email, email), gt(this.t.expire, now)))
-        .orderBy(dsql`${this.t.time} DESC`).limit(limit).offset(offset)
-        .execute()) as Metadata[];
+      const items = await this.run(() =>
+        this.db.select({
+          fkey: this.t.fkey,
+          time: this.t.time,
+          expire: this.t.expire,
+          ip: this.t.ip,
+          mime: this.t.mime,
+          len: this.t.len,
+          pwd: this.t.pwd,
+          email: this.t.email,
+          uname: this.t.uname,
+          hash: this.t.hash
+        }).from(this.t)
+          .where(and(eq(this.t.email, email), gt(this.t.expire, now)))
+          .orderBy(dsql`${this.t.time} DESC`).limit(limit).offset(offset)
+          .execute()) as Omit<Metadata, 'content'>[];
 
-    return { items, total: totalNumber };
-  }
+      return { items, total: totalNumber };
+    }
 
   /** 管理员查看全部未过期数据 */
   async listAlive(limit = 10, offset = 0) {

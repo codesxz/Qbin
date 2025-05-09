@@ -26,6 +26,11 @@ RUN mkdir -p data/ && \
 # ──────── runtime stage ───────────────────
 FROM denoland/deno:2.3.1
 
+# 安装 curl
+RUN apt-get update && apt-get install -y curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 ENV DB_CLIENT=sqlite
 ENV SQLITE_URL="file:/app/data/qbin_local.db"
 

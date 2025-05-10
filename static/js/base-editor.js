@@ -637,6 +637,7 @@ class QBinEditorBase {
             resetInputModification(passwordInput);
             
             this.updateUploadStatus("已撤销设置", "success");
+            setTimeout(() => this.updateUploadStatus(""), 2000);
         };
 
         // 保存内容
@@ -651,6 +652,7 @@ class QBinEditorBase {
                 resetInputModification(passwordInput);
             } else {
                 this.updateUploadStatus("无法保存空内容", "info");
+                setTimeout(() => this.updateUploadStatus(""), 2000);
             }
         };
 

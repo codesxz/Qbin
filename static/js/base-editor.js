@@ -184,10 +184,10 @@ class QBinEditorBase {
             return true;
         } catch (error) {
             isSuccess = false;
-            this.updateUploadStatus("数据加载失败：" + error.message);
+            this.updateUploadStatus("加载失败：" + error.message);
             console.error(error);
             const uploadArea = document.querySelector('.upload-area');
-            if (uploadArea) {
+            if (uploadArea && !this.lastUploadedHash) {
                 uploadArea.classList.add('visible');
             }
             return false;
@@ -524,6 +524,12 @@ class QBinEditorBase {
         const passwordInput = document.getElementById('password-input');
         const generateKeyBtn = document.getElementById('generate-key-btn');
         const generatePwdBtn = document.getElementById('generate-pwd-btn');
+        const undoSettingsBtn = document.getElementById('undo-settings');
+        const applySettingsBtn = document.getElementById('apply-settings');
+
+        // Store original values for reset functionality
+        let originalKey = this.currentPath.key;
+        let originalPwd = this.currentPath.pwd;
 
         // 初始化输入框值
         keyInput.value = this.currentPath.key;
@@ -539,6 +545,33 @@ class QBinEditorBase {
                 this.updateURL(trimmedKey, trimmedPwd, "replaceState");
             }
         };
+
+        // Track if inputs are modified
+        const markInputAsModified = (input) => {
+            input.classList.add('input-modified');
+        };
+
+        const resetInputModification = (input) => {
+            input.classList.remove('input-modified');
+        };
+
+        keyInput.addEventListener('input', () => {
+            updateURLHandler();
+            if (keyInput.value.trim() !== originalKey) {
+                markInputAsModified(keyInput);
+            } else {
+                resetInputModification(keyInput);
+            }
+        });
+
+        passwordInput.addEventListener('input', () => {
+            updateURLHandler();
+            if (passwordInput.value.trim() !== originalPwd) {
+                markInputAsModified(passwordInput);
+            } else {
+                resetInputModification(passwordInput);
+            }
+        });
 
         // 添加按钮旋转动画效果
         const addRotationAnimation = (button) => {
@@ -560,6 +593,7 @@ class QBinEditorBase {
             setTimeout(() => {
                 keyInput.classList.remove('highlight-input');
             }, 500);
+            markInputAsModified(keyInput);
         };
 
         // 生成随机密码
@@ -582,6 +616,42 @@ class QBinEditorBase {
             setTimeout(() => {
                 passwordInput.classList.remove('highlight-input');
             }, 500);
+            markInputAsModified(passwordInput);
+        };
+
+        // 重置设置
+        const resetSettings = () => {
+            keyInput.value = originalKey;
+            passwordInput.value = originalPwd;
+            updateURLHandler();
+            
+            // 添加动画效果
+            keyInput.classList.add('highlight-input');
+            passwordInput.classList.add('highlight-input');
+            setTimeout(() => {
+                keyInput.classList.remove('highlight-input');
+                passwordInput.classList.remove('highlight-input');
+            }, 500);
+            
+            resetInputModification(keyInput);
+            resetInputModification(passwordInput);
+            
+            this.updateUploadStatus("已撤销设置", "success");
+        };
+
+        // 保存内容
+        const saveContent = () => {
+            const content = this.getEditorContent();
+            if (content) {
+                this.handleUpload(content, "text/plain; charset=UTF-8");
+                this.saveToLocalCache(true);
+                originalKey = this.currentPath.key;
+                originalPwd = this.currentPath.pwd;
+                resetInputModification(keyInput);
+                resetInputModification(passwordInput);
+            } else {
+                this.updateUploadStatus("无法保存空内容", "info");
+            }
         };
 
         // 为生成按钮添加点击事件
@@ -593,9 +663,14 @@ class QBinEditorBase {
             generatePwdBtn.addEventListener('click', generateRandomPassword);
         }
 
-        // 监听输入变化时更新地址栏
-        keyInput.addEventListener('input', updateURLHandler);
-        passwordInput.addEventListener('input', updateURLHandler);
+        // 添加重置和保存按钮事件
+        if (undoSettingsBtn) {
+            undoSettingsBtn.addEventListener('click', resetSettings);
+        }
+        
+        if (applySettingsBtn) {
+            applySettingsBtn.addEventListener('click', saveContent);
+        }
 
         // 根据当前编辑器类型确定跳转映射
         const getEditorMapping = () => {

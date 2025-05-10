@@ -76,8 +76,6 @@
                     </a>
                 </div>
             </div>
-
-            <!-- 访问设置分组 -->
             <div class="form-section">
                 <div class="input-wrapper">
                     <label for="key-input" class="form-label required-label">访问路径</label>
@@ -99,10 +97,6 @@
                         </button>
                     </div>
                 </div>
-            </div>
-
-            <!-- 有效期分组 -->
-            <div class="form-section">
                 <div class="input-wrapper">
                     <label for="expiry-select" class="form-label">有效期限</label>
                     <select id="expiry-select" class="expiry-select">
@@ -144,6 +138,10 @@
                     <span class="option-text"><del>端到端加密</del> (开发中)</span>
                     <input type="checkbox" id="encryptData" name="encryptData" style="display:none">
                 </div>
+            </div>
+            <div class="panel-footer">
+                <button type="button" id="undo-settings" class="panel-button secondary">撤销</button>
+                <button type="button" id="apply-settings" class="panel-button primary">保存</button>
             </div>
         </div>
     </div>

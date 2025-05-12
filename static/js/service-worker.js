@@ -2,12 +2,18 @@
  * QBin Progressive Web App - Service Worker
  */
 
-// 缓存配置
-const CACHE_VERSION = 'v1.67';
+// 缓存配置 - 从URL获取版本号
+const CACHE_VERSION = self.location.search.includes('v=') 
+    ? self.location.search.match(/v=([^&]*)/)[1] 
+    : 'v1.0';
+
+const CACHE_MAJOR = extractMajorVersion(CACHE_VERSION);
 const STATIC_CACHE_NAME = `qbin-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `qbin-dynamic-${CACHE_VERSION}`;
-const CDN_CACHE_NAME = `qbin-cdn-${CACHE_VERSION}`;
+// CDN缓存仅使用主版本号
+const CDN_CACHE_NAME = `qbin-cdn-v${CACHE_MAJOR}`;
 const DEBUG = false;
+const AUTO_UPDATE = true; // 自动更新开关，允许无需用户交互自动更新
 
 // 日志函数
 const log = DEBUG ? console.log.bind(console, '[SW]') : () => {};
@@ -63,6 +69,11 @@ const REALTIME_PATHS = [
  */
 self.addEventListener('install', event => {
     log('安装事件触发');
+
+    // 如果开启了自动更新模式，就跳过等待阶段直接激活
+    if (AUTO_UPDATE) {
+        self.skipWaiting();
+    }
 
     event.waitUntil(
         fullCachingStrategy()
@@ -129,7 +140,7 @@ self.addEventListener('fetch', event => {
     try {
         // CDN或跨域资源处理
         if (isCdnResource(request.url) || url.origin !== self.location.origin) {
-            event.respondWith(cacheFirstStrategy(request));
+            event.respondWith(StaleWhileRevalidate(request, CDN_CACHE_NAME));
             return;
         }
 
@@ -143,8 +154,14 @@ self.addEventListener('fetch', event => {
 
         // 基于资源类型应用不同的缓存策略
         if (isStaticResource(path)) {
-            event.respondWith(cacheFirstStrategy(request));
+            event.respondWith(cacheFirstStrategy(request, STATIC_CACHE_NAME));
         }
+        //  else if (isRealtimeResource(path)) {
+        //     event.respondWith(networkFirstStrategy(request, DYNAMIC_CACHE_NAME));
+        // } else {
+        //     // 默认使用网络优先策略
+        //     event.respondWith(networkFirstStrategy(request, DYNAMIC_CACHE_NAME));
+        // }
     } catch (err) {
         error('缓存策略处理错误:', err);
     }
@@ -217,11 +234,14 @@ async function validateAndUpdateCache(request, cachedResponse, cache, options = 
 
 /**
  * 缓存优先策略 - 适用于静态资源和页面模板
+ * @param {Request} request 请求对象
+ * @param {string} cacheName 要使用的缓存名称
+ * @returns {Promise<Response>} 响应对象
  */
-async function cacheFirstStrategy(request) {
-    if (DEBUG) log(`缓存优先策略: 处理请求 - ${request.url}`);
+async function cacheFirstStrategy(request, cacheName = STATIC_CACHE_NAME) {
+    if (DEBUG) log(`缓存优先策略: 处理请求 - ${request.url} (使用缓存: ${cacheName})`);
 
-    const cache = await caches.open(STATIC_CACHE_NAME);
+    const cache = await caches.open(cacheName);
     const cachedResponse = await cache.match(request);
 
     if (cachedResponse) {
@@ -257,9 +277,14 @@ async function cacheFirstStrategy(request) {
 
 /**
  * 网络优先策略 - 适用于实时数据
+ * @param {Request} request 请求对象
+ * @param {string} cacheName 要使用的缓存名称
+ * @returns {Promise<Response>} 响应对象
  */
-async function networkFirstStrategy(request) {
-    const cache = await caches.open(DYNAMIC_CACHE_NAME);
+async function networkFirstStrategy(request, cacheName = DYNAMIC_CACHE_NAME) {
+    if (DEBUG) log(`网络优先策略: 处理请求 - ${request.url} (使用缓存: ${cacheName})`);
+
+    const cache = await caches.open(cacheName);
     const cachedResponse = await cache.match(request);
 
     try {
@@ -323,15 +348,20 @@ async function networkFirstStrategy(request) {
 
 /**
  * 先缓存后网络策略
+ * @param {Request} request 请求对象
+ * @param {string} cacheName 要使用的缓存名称
+ * @returns {Promise<Response>} 响应对象
  */
-async function StaleWhileRevalidate(request) {
+async function StaleWhileRevalidate(request, cacheName = CDN_CACHE_NAME) {
+    if (DEBUG) log(`先缓存后网络策略: 处理请求 - ${request.url} (使用缓存: ${cacheName})`);
+
     const cdnRequest = new Request(request.url, {
         mode: 'cors',
         credentials: 'omit',
         cache: 'no-cache'
     });
 
-    const cache = await caches.open(CDN_CACHE_NAME);
+    const cache = await caches.open(cacheName);
     const cachedResponse = await cache.match(cdnRequest);
 
     const backgroundUpdate = (async () => {
@@ -399,7 +429,7 @@ async function handleTemplateRoutes(request) {
     const url = new URL(request.url);
     const path = url.pathname;
     let templatePath, templateUrl;
-    
+
     try {
         // 确定要使用的模板路径
         if (path === '/') {
@@ -411,11 +441,11 @@ async function handleTemplateRoutes(request) {
             // 非根路径 - 取前两个字符作为模板标识
             templatePath = path.substring(0, 2);
         }
-        
+
         // 构建模板URL并保留原始查询参数
         templateUrl = new URL(templatePath, self.location.origin);
         templateUrl.search = url.search;
-        
+
         // 创建并发送模板请求
         const requestInit = {
             method: 'GET',
@@ -424,12 +454,12 @@ async function handleTemplateRoutes(request) {
             redirect: 'follow',
             ...(request.mode !== 'navigate' && { mode: request.mode })
         };
-        
+
         const templateRequest = new Request(templateUrl.toString(), requestInit);
-        return await cacheFirstStrategy(templateRequest);
+        return await cacheFirstStrategy(templateRequest, STATIC_CACHE_NAME);
     } catch (err) {
         error(`模板路由处理失败: ${path}`, err);
-        
+
         // 尝试从缓存中获取备用响应
         if (templateUrl) {
             try {
@@ -441,7 +471,7 @@ async function handleTemplateRoutes(request) {
                     redirect: 'follow',
                     ...(request.mode !== 'navigate' && { mode: request.mode })
                 });
-                
+
                 const fallback = await cache.match(fallbackRequest);
                 if (fallback) return fallback;
             } catch (fallbackErr) {
@@ -520,18 +550,19 @@ function isCdnResource(url) {
 }
 
 /**
- * 激活事件处理 - 清理旧缓存并检查过期资源
+ * 激活事件处理 - 清理旧缓存并检查版本更新
  */
 self.addEventListener('activate', event => {
     log('激活事件触发');
 
     event.waitUntil(
         Promise.all([
-            cleanupOldCaches(),
+            cleanupOldCaches(), // 清理旧缓存并检查是否需要通知更新
             cleanupExpiredResources()
         ])
         .then(() => {
-            log('缓存清理完成');
+            log('缓存清理与版本检查完成');
+            // 立即控制所有客户端，无需刷新
             return self.clients.claim();
         })
         .catch(err => {
@@ -554,28 +585,105 @@ self.addEventListener('activate', event => {
 });
 
 /**
- * 清理旧版本缓存
+ * 根据版本号清理旧版本缓存，同时检查是否需要通知客户端更新
  */
 async function cleanupOldCaches() {
     try {
+        // 获取当前版本信息
+        const currentVersion = CACHE_VERSION;
+        const currentMajor = extractMajorVersion(currentVersion);
         const cacheNames = await caches.keys();
-        const deletionPromises = cacheNames
-            .filter(cacheName =>
-                cacheName !== STATIC_CACHE_NAME &&
-                cacheName !== DYNAMIC_CACHE_NAME &&
-                cacheName !== CDN_CACHE_NAME &&
-                cacheName.includes('qbin-')
-            )
-            .map(cacheName => {
-                log('删除旧缓存:', cacheName);
-                return caches.delete(cacheName);
-            });
 
-        return Promise.all(deletionPromises);
+        log(`当前版本: ${currentVersion}, 主版本: ${currentMajor}`);
+
+        // 从缓存名称中提取先前版本
+        const staticCaches = cacheNames.filter(name => name.startsWith('qbin-static-') && name !== STATIC_CACHE_NAME);
+        let previousVersion = null;
+        
+        if (staticCaches.length > 0) {
+            staticCaches.sort();
+            const latestOldCache = staticCaches[staticCaches.length - 1];
+            previousVersion = latestOldCache.match(/v\d+\.\d+/)?.[0];
+            log(`从缓存名称中提取的先前版本: ${previousVersion}`);
+        }
+        
+        const versionChanged = previousVersion && previousVersion !== currentVersion;
+        
+        if (versionChanged) {
+            log(`检测到版本变更: ${previousVersion} -> ${currentVersion}`);
+        }
+
+        // 按类型分组缓存
+        const dynamicCaches = cacheNames.filter(name => name.startsWith('qbin-dynamic-') && name !== DYNAMIC_CACHE_NAME);
+        const cdnCaches = cacheNames.filter(name => name.startsWith('qbin-cdn-') && name !== CDN_CACHE_NAME);
+        const otherCaches = cacheNames.filter(name =>
+            name.includes('qbin-') &&
+            !name.startsWith('qbin-static-') &&
+            !name.startsWith('qbin-dynamic-') &&
+            !name.startsWith('qbin-cdn-'));
+
+        // 处理删除逻辑
+        const deletionPromises = [];
+
+        // 始终删除其他旧的qbin缓存
+        otherCaches.forEach(cacheName => {
+            log(`删除其他旧缓存: ${cacheName}`);
+            deletionPromises.push(caches.delete(cacheName));
+        });
+
+        // 处理静态缓存 - 任何版本变化都删除
+        staticCaches.forEach(cacheName => {
+            log(`删除旧静态缓存: ${cacheName}`);
+            deletionPromises.push(caches.delete(cacheName));
+        });
+
+        // 处理动态缓存 - 任何版本变化都删除
+        dynamicCaches.forEach(cacheName => {
+            log(`删除旧动态缓存: ${cacheName}`);
+            deletionPromises.push(caches.delete(cacheName));
+        });
+
+        // 处理CDN缓存
+        cdnCaches.forEach(cacheName => {
+            const cacheVersion = extractVersionFromCacheName(cacheName);
+            const cacheMajor = extractMajorVersion(cacheVersion);
+
+            if (cacheMajor !== currentMajor) {
+                // 主版本不同，直接删除
+                log(`删除旧CDN缓存 (主版本不同): ${cacheName}`);
+                deletionPromises.push(caches.delete(cacheName));
+            }
+        });
+
+        // 3. 执行删除操作
+        await Promise.all(deletionPromises);
+        
+        // 4. 如果版本有变化且启用了自动更新，通知客户端需要刷新
+        if (versionChanged && AUTO_UPDATE) {
+            log('版本已变更，通知客户端刷新');
+            await notifyClientsToRefresh();
+        }
+        
+        return Promise.resolve();
     } catch (err) {
-        warn('清理旧缓存失败:', err);
+        warn('清理旧缓存和版本检查失败:', err);
         return Promise.resolve();
     }
+}
+
+/**
+ * 从缓存名称中提取版本号
+ */
+function extractVersionFromCacheName(cacheName) {
+    const parts = cacheName.split('-');
+    return parts[parts.length - 1]; // 获取最后一部分
+}
+
+/**
+ * 提取主版本号
+ */
+function extractMajorVersion(version) {
+    return version.replace('v', '').split('.')[0];
 }
 
 /**
@@ -656,3 +764,35 @@ async function getCache(key) {
     return null;
   }
 }
+
+/**
+ * message事件处理 - 用于处理来自页面的消息
+ */
+self.addEventListener('message', event => {
+    const message = event.data;
+
+    if (message && message.type === 'SKIP_WAITING') {
+        log('收到跳过等待消息，立即激活');
+        self.skipWaiting();
+    }
+});
+
+/**
+ * 通知所有客户端进行刷新
+ */
+async function notifyClientsToRefresh() {
+    try {
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+            client.postMessage({
+                type: 'SW_UPDATED_REFRESH_NEEDED',
+                version: CACHE_VERSION
+            });
+        });
+        return Promise.resolve();
+    } catch (err) {
+        warn('通知客户端刷新失败:', err);
+        return Promise.resolve();
+    }
+}
+

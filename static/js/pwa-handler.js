@@ -3,7 +3,7 @@
  */
 (function() {
     // 定义PWA版本号
-    const PWA_VERSION = 'v1.71';
+    const PWA_VERSION = 'v1.72';
 
     // 初始化全局变量
     window.QBinPWA = {
@@ -62,8 +62,6 @@
                     })
                     .catch(error => {
                         console.warn('Service Worker 注册失败:', error);
-                        // 启用降级方案
-                        enableFallbackMode('sw-register-error');
                     });
                 
                 // 添加用于接收跨worker通信的监听器

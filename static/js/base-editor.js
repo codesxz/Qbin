@@ -546,32 +546,9 @@ class QBinEditorBase {
             }
         };
 
-        // Track if inputs are modified
-        const markInputAsModified = (input) => {
-            input.classList.add('input-modified');
-        };
-
         const resetInputModification = (input) => {
             input.classList.remove('input-modified');
         };
-
-        keyInput.addEventListener('input', () => {
-            updateURLHandler();
-            if (keyInput.value.trim() !== originalKey) {
-                markInputAsModified(keyInput);
-            } else {
-                resetInputModification(keyInput);
-            }
-        });
-
-        passwordInput.addEventListener('input', () => {
-            updateURLHandler();
-            if (passwordInput.value.trim() !== originalPwd) {
-                markInputAsModified(passwordInput);
-            } else {
-                resetInputModification(passwordInput);
-            }
-        });
 
         // 添加按钮旋转动画效果
         const addRotationAnimation = (button) => {
@@ -593,7 +570,6 @@ class QBinEditorBase {
             setTimeout(() => {
                 keyInput.classList.remove('highlight-input');
             }, 500);
-            markInputAsModified(keyInput);
         };
 
         // 生成随机密码
@@ -616,7 +592,6 @@ class QBinEditorBase {
             setTimeout(() => {
                 passwordInput.classList.remove('highlight-input');
             }, 500);
-            markInputAsModified(passwordInput);
         };
 
         // 重置设置

@@ -13,14 +13,20 @@
                           0 0 0 1px rgba(24, 144, 255, 0.08),
                           inset 0 0 30px rgba(0, 0, 0, 0.002),
                           0 8px 24px rgba(0, 0, 0, 0.03);
-    --editor-drag-bg: rgba(255, 255, 255, 0.98);
-    --editor-drag-shadow: 0 1px 3px rgba(0, 0, 0, 0.04),
-                          0 2px 10px rgba(0, 0, 0, 0.08),
-                          0 0 0 1px rgba(24, 144, 255, 0.15),
-                          inset 0 0 20px rgba(0, 0, 0, 0.004);
+    --editor-drag-bg: rgba(240, 249, 255, 0.98);
+    --editor-drag-shadow: 0 2px 12px rgba(24, 144, 255, 0.15),
+                          0 4px 16px rgba(0, 0, 0, 0.08),
+                          0 0 0 1px rgba(24, 144, 255, 0.25),
+                          inset 0 0 20px rgba(24, 144, 255, 0.04);
+    --editor-drag-active-border: rgba(24, 144, 255, 0.6);
+    --editor-drag-indicator-bg: rgba(24, 144, 255, 0.15);
+    --editor-drag-indicator-color: rgba(24, 144, 255, 0.9);
+    --editor-drag-indicator-text: #1a73e8;
+    --editor-drop-success: rgba(82, 196, 26, 0.2);
+    --editor-drop-success-border: rgba(82, 196, 26, 0.6);
     --scrollbar-thumb: rgba(0, 0, 0, 0.2);
     --scrollbar-thumb-hover: rgba(0, 0, 0, 0.4);
-    
+
     /* Panel & Form elements */
     --panel-bg: rgba(252, 252, 252, 0.92);
     --panel-gradient: radial-gradient(circle at top right,
@@ -143,14 +149,20 @@
                           0 0 0 1px rgba(24, 144, 255, 0.15),
                           inset 0 0 20px rgba(0, 0, 0, 0.15),
                           0 8px 24px rgba(0, 0, 0, 0.18);
-    --editor-drag-bg: rgba(40, 40, 40, 0.98);
-    --editor-drag-shadow: 0 1px 3px rgba(0, 0, 0, 0.2),
-                          0 2px 10px rgba(0, 0, 0, 0.15),
-                          0 0 0 1px rgba(24, 144, 255, 0.2),
-                          inset 0 0 20px rgba(0, 0, 0, 0.1);
+    --editor-drag-bg: rgba(15, 37, 55, 0.95);
+    --editor-drag-shadow: 0 2px 12px rgba(24, 144, 255, 0.25),
+                          0 4px 16px rgba(0, 0, 0, 0.15),
+                          0 0 0 1px rgba(24, 144, 255, 0.35),
+                          inset 0 0 20px rgba(24, 144, 255, 0.08);
+    --editor-drag-active-border: rgba(24, 144, 255, 0.8);
+    --editor-drag-indicator-bg: rgba(24, 144, 255, 0.25);
+    --editor-drag-indicator-color: rgba(82, 183, 255, 0.9);
+    --editor-drag-indicator-text: rgba(255, 255, 255, 0.95);
+    --editor-drop-success: rgba(82, 196, 26, 0.25);
+    --editor-drop-success-border: rgba(82, 196, 26, 0.7);
     --scrollbar-thumb: rgba(255, 255, 255, 0.2);
     --scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
-    
+
     /* Panel & Form elements */
     --panel-bg: rgba(36, 36, 36, 0.92);
     --panel-gradient: radial-gradient(circle at top right,
@@ -357,9 +369,95 @@ body::-webkit-scrollbar {
 #editor.drag-over {
     background: var(--editor-drag-bg);
     box-shadow: var(--editor-drag-shadow);
-    border: none;
-    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);  /* 更有弹性的动画 */
-    transform: scale(1.005);  /* 微小的放大效果 */
+    border: 3px dashed var(--editor-drag-active-border);
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: scale(1.01);
+    position: relative;
+}
+
+/* Drop indicator overlay */
+.drop-indicator {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--editor-drag-indicator-bg);
+    border-radius: 10px;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    animation: pulse 1.5s infinite alternate ease-in-out;
+    backdrop-filter: blur(2px);
+    box-shadow: inset 0 0 30px rgba(24, 144, 255, 0.1);
+}
+
+#editor.drag-over .drop-indicator {
+    display: flex;
+    opacity: 1;
+}
+
+.drop-indicator-icon {
+    font-size: 52px;
+    color: var(--editor-drag-indicator-color);
+    margin-bottom: 16px;
+    transform-origin: center;
+    animation: bounce 1s infinite alternate cubic-bezier(0.2, 0.65, 0.6, 1);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.drop-indicator-text {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--editor-drag-indicator-text);
+    text-align: center;
+    max-width: 80%;
+    line-height: 1.4;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.dark-theme .drop-indicator-text {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Animations */
+@keyframes pulse {
+    0% { background-color: var(--editor-drag-indicator-bg); }
+    100% { background-color: rgba(24, 144, 255, 0.08); }
+}
+
+@keyframes bounce {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-10px) scale(1.1); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Processing indicator */
+.processing-indicator {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(24, 144, 255, 0.2);
+    border-top: 3px solid rgba(24, 144, 255, 0.8);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 101;
+}
+
+#editor.processing .processing-indicator {
+    display: block;
 }
 
 /* Enhanced upload area with paper texture and improved visibility */

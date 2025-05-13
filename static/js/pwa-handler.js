@@ -3,7 +3,7 @@
  */
 (function() {
     // 定义PWA版本号
-    const PWA_VERSION = 'v1.72';
+    const PWA_VERSION = 'v1.73';
 
     // 初始化全局变量
     window.QBinPWA = {

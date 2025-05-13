@@ -2,6 +2,7 @@ class QBinMDEditor extends QBinEditorBase {
     constructor() {
         super();
         this.currentEditor = "md";
+        this.contentType = "text/markdown; charset=UTF-8";
         this.saveDebounceTimeout = null;
         this.uploadDebounceTimeout = null;
         this.passwordPanelInitialized = false;

@@ -2,6 +2,7 @@ class QBinCodeEditor extends QBinEditorBase {
     constructor() {
         super();
         this.currentEditor = "code";
+        this.contentType = "text/html; charset=UTF-8";
         this.editorBuffer = {
             content: "",
             isReady: false
@@ -149,9 +150,7 @@ class QBinCodeEditor extends QBinEditorBase {
             this.autoUploadTimer = setTimeout(() => {
                 const content = this.getEditorContent();
                 if (content && cyrb53(content) !== this.lastUploadedHash) {
-                    const lang = document.getElementById('language-select').value;
-                    const mimetype = this.getMimeTypeFromLang(lang);
-                    this.handleUpload(content, mimetype);
+                    this.handleUpload(content, this.contentType);
                 }
             }, 2000);
         });
@@ -253,11 +252,13 @@ class QBinCodeEditor extends QBinEditorBase {
             const newLanguage = languageSelect.value;
             monaco.editor.setModelLanguage(this.editor.getModel(), newLanguage);
             localStorage.setItem('qbin_language_preference', newLanguage);
+            this.contentType = this.getMimeTypeFromLang(newLanguage);
         });
 
         const savedLanguage = localStorage.getItem('qbin_language_preference');
         if (savedLanguage) {
             languageSelect.value = savedLanguage;
+            this.contentType = this.getMimeTypeFromLang(savedLanguage);
             monaco.editor.setModelLanguage(this.editor.getModel(), savedLanguage);
         }
     }

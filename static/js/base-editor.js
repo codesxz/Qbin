@@ -1,6 +1,7 @@
 class QBinEditorBase {
     constructor() {
         this.currentEditor = "";
+        this.contentType = "";
         this.currentPath = parsePath(window.location.pathname);
         this.CACHE_KEY = 'qbin/';
         this.isUploading = false;
@@ -619,7 +620,7 @@ class QBinEditorBase {
         const saveContent = () => {
             const content = this.getEditorContent();
             if (content) {
-                this.handleUpload(content, "text/plain; charset=UTF-8");
+                this.handleUpload(content, this.contentType);
                 this.saveToLocalCache(true);
                 originalKey = this.currentPath.key;
                 originalPwd = this.currentPath.pwd;

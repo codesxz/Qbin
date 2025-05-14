@@ -1,39 +1,7 @@
 function getStyleFromHash(input) {
     const hash = cyrb53(input);
-    const styleCounts = {
-        face: 16,
-        nose: 14,
-        mouth: 20,
-        eyes: 14,
-        eyebrows: 16,
-        glasses: 14,
-        hair: 58,
-        beard: 16,
-        details: 13,
-        accessories: 14
-    };
-    function getStyleForPart(partName, maxValue) {
-        const partHash = cyrb53(partName + input + hash);
-        return Math.floor(partHash % maxValue);
-    }
-    const styleConfig = {
-        face: getStyleForPart('face', styleCounts.face),
-        nose: getStyleForPart('nose', styleCounts.nose),
-        mouth: getStyleForPart('mouth', styleCounts.mouth),
-        eyes: getStyleForPart('eyes', styleCounts.eyes),
-        eyebrows: getStyleForPart('eyebrows', styleCounts.eyebrows),
-        glasses: getStyleForPart('glasses', styleCounts.glasses),
-        hair: getStyleForPart('hair', styleCounts.hair),
-        beard: getStyleForPart('beard', styleCounts.beard),
-        details: getStyleForPart('details', styleCounts.details),
-        accessories: getStyleForPart('accessories', styleCounts.accessories),
-        flip: 0,
-        color: "rgba(255, 0, 0, 0)", // 默认颜色
-        shape: "none" // 默认形状
-    };
-    const jsonString = JSON.stringify(styleConfig);
-    const base64Encoded = btoa(jsonString);
-    const url = `https://notion-avatar.app/api/svg/${base64Encoded}`;
+    const base64Encoded = btoa(hash);
+    const url = `https://api.dicebear.com/9.x/adventurer/svg?seed=${base64Encoded}&hair=long01,long02,long03,long04,long05,long06,long07,long08,long09,long10,long11,long12,long13,long14,long15,long16,long17,long18,long19,long20,long21,long22,long23,long24,long25,long26,short01,short02,short03,short04,short05,short06,short07,short08,short09,short10,short11,short13,short14,short15,short16,short17,short18&skinColor=f2d3b1&flip=true`;
     return url;
 }
 

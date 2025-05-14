@@ -547,6 +547,16 @@ class QBinEditorBase {
             }
         };
 
+        // 添加输入框变化监听器
+        keyInput.addEventListener('input', () => {
+            updateURLHandler();
+            keyInput.classList.add('input-modified');
+        });
+        passwordInput.addEventListener('input', () => {
+            updateURLHandler();
+            passwordInput.classList.add('input-modified');
+        });
+
         const resetInputModification = (input) => {
             input.classList.remove('input-modified');
         };

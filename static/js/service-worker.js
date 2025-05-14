@@ -795,4 +795,3 @@ async function notifyClientsToRefresh() {
         return Promise.resolve();
     }
 }
-

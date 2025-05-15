@@ -1066,32 +1066,11 @@ html[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
         width: 36px;
         height: 36px;
     }
-    
+
     .button-icon svg {
         width: 18px;
         height: 18px;
         opacity: 0.9;
-    }
-    
-    /* Add tooltip for icon-only buttons */
-    .button::after {
-        content: attr(aria-label);
-        position: absolute;
-        top: -30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--surface);
-        color: var(--text);
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        white-space: nowrap;
-        box-shadow: var(--shadow-md);
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.2s ease, visibility 0.2s ease;
-        pointer-events: none;
-        border: 1px solid var(--border);
     }
     
     .button:hover::after {

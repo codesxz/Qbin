@@ -1,6 +1,6 @@
 import {Context} from "https://deno.land/x/oak/mod.ts";
 import {OAuth2Client} from "jsr:@cmd-johnson/oauth2-client";
-import {generateJwtToken, verifyJwtToken} from "../utils/crypto.ts";
+import {generateJwtToken, verifyJwtToken, decodeJwtToken} from "../utils/crypto.ts";
 import {kv} from "../utils/cache.ts";
 import {PasteError, Response} from "../utils/response.ts";
 import {
@@ -178,14 +178,34 @@ export async function authMiddleware(ctx: Context, next: () => Promise<unknown>)
       }
     }
     catch (e) {
-      console.warn("JWT verify error:", e);
       await ctx.cookies.delete("token", {
         path: "/",
         httpOnly: true,
         sameSite: "lax"
       });
       if (!(isPrefixPathAuth || isExactPathAuth || currentPath === "/home")) {
-        return new Response(ctx, 401, "Cookie expired");
+        const { header, payload } = decodeJwtToken(token);
+        if (ENABLE_ANONYMOUS_ACCESS === 1 && payload.provider === "anonymous") {
+          const demoToken = await generateJwtToken({
+            id: 1,
+            email: "demo@qbin.me",
+            name: "Anonymous User",
+            provider: "anonymous",
+          }, 43200);
+          await ctx.cookies.set("token", demoToken, {
+            maxAge: 43200000,
+            httpOnly: true,
+            sameSite: "lax",
+            path: "/",
+          });
+          session.set("user", {
+            id: 1,
+            name: "Anonymous User",
+            email: "demo@qbin.me",
+          });
+        } else {
+          return new Response(ctx, 401, "Cookie expired");
+        }
       }
     }
   }

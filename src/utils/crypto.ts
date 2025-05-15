@@ -1,4 +1,4 @@
-import { create, verify, getNumericDate } from "https://deno.land/x/djwt/mod.ts";
+import { create, verify, getNumericDate, decode } from "https://deno.land/x/djwt/mod.ts";
 import { jwtSecret } from "../config/constants.ts";
 
 
@@ -30,4 +30,10 @@ export async function generateJwtToken(payload: Record<string, unknown>, exp): P
  */
 export async function verifyJwtToken(jwt: string) {
   return await verify(jwt, JWT_KEY, { alg: "HS256" });
+}
+
+export function decodeJwtToken(token: string) {
+  // decode 只解析 token 而不验证签名或过期时间
+  const [header, payload] = decode(token);
+  return { header, payload };
 }

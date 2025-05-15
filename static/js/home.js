@@ -47,7 +47,7 @@ class QBinHome {
     }
 
     initializeNavigation() {
-        const validSections = ['settings', 'shares', 'storage', 'editors'];
+        const validSections = ['editors', 'storage', 'shares', 'recycle', 'settings'];
         const hash = window.location.hash.substring(1);
         let defaultSection = 'editors';
         if (hash && validSections.includes(hash)) {

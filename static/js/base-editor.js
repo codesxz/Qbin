@@ -547,6 +547,39 @@ class QBinEditorBase {
             }
         };
 
+        // 添加浏览器前进后退事件监听
+        window.addEventListener('popstate', () => {
+            const newPath = parsePath(window.location.pathname);
+            
+            // 使用requestAnimationFrame确保在下一帧渲染前执行
+            requestAnimationFrame(() => {
+                if (newPath.key) {
+                    // 更新输入框值 - 使用多种方式确保UI更新
+                    keyInput.value = newPath.key;
+                    passwordInput.value = newPath.pwd || '';
+                    
+                    // 直接设置DOM属性
+                    keyInput.setAttribute('value', newPath.key);
+                    passwordInput.setAttribute('value', newPath.pwd || '');
+                    
+                    // 更新当前路径对象
+                    this.currentPath = newPath;
+                    
+                    // 更新原始值以便撤销功能正常工作
+                    originalKey = newPath.key;
+                    originalPwd = newPath.pwd || '';
+                    
+                    // 重置输入框修改状态
+                    keyInput.classList.remove('input-modified');
+                    passwordInput.classList.remove('input-modified');
+                    
+                    // 派发输入事件以确保任何监听器都能感知到变化
+                    keyInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            });
+        });
+
         // 添加输入框变化监听器
         keyInput.addEventListener('input', () => {
             updateURLHandler();

@@ -11,6 +11,7 @@ class QBinViewer {
         this.scrollThreshold = 20;
         this.ticking = false;
         this.edit = 'e';
+        this.currentTheme = this.getThemePreference();
         this.init();
         this.initScrollHandler();
     }
@@ -43,20 +44,20 @@ class QBinViewer {
         this.ticking = false;
     }
 
+    getThemePreference() {
+        const savedTheme = localStorage.getItem('qbin-theme') || 'system';
+        if (savedTheme === 'dark') return 'dark';
+        if (savedTheme === 'light') return 'light';
+        // System preference:
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ?
+            'dark' : 'light';
+    }
+
     initViewer(content, contentType) {
         if (window.cherry) {
             window.cherry = null;
         }
 
-        function getThemePreference() {
-            const savedTheme = localStorage.getItem('qbin-theme') || 'system';
-            if (savedTheme === 'dark') return 'dark';
-            if (savedTheme === 'light') return 'light';
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ?
-                'dark' : 'light';
-        }
-
-        const currentTheme = getThemePreference();
         if (contentType.startsWith("text/plain")) {
             const cherryConfig = {
                 id: 'qbin-viewer',
@@ -94,6 +95,16 @@ class QBinViewer {
                 autoScrollByHashAfterInit: false,
                 autoScrollByCursor: false,  // 禁用自动滚动
                 height: '100%',
+                event: {
+                    changeMainTheme: (theme) => {
+                        const userPreference = localStorage.getItem('qbin-theme') || 'system';
+                        if (userPreference === 'system') {
+                            localStorage.setItem('qbin-theme', 'system');
+                        }
+                        document.documentElement.classList.remove('light-theme', 'dark-theme');
+                        document.documentElement.classList.add(theme === 'dark' ? 'dark-theme' : 'light-theme');
+                    }
+                },
                 engine: {
                     global: {
                         classicBr: false,
@@ -102,7 +113,7 @@ class QBinViewer {
                     },
                 },
                 themeSettings: {
-                    mainTheme: currentTheme,
+                    mainTheme: this.currentTheme,
                     inlineCodeTheme: 'default',
                     codeBlockTheme: 'default',
                     toolbarTheme: 'default'
@@ -157,6 +168,16 @@ class QBinViewer {
                 externals: {
                     katex: window.katex, // 如果需要使用Katex的话
                 },
+                event: {
+                    changeMainTheme: (theme) => {
+                        const userPreference = localStorage.getItem('qbin-theme') || 'system';
+                        if (userPreference === 'system') {
+                            localStorage.setItem('qbin-theme', 'system');
+                        }
+                        document.documentElement.classList.remove('light-theme', 'dark-theme');
+                        document.documentElement.classList.add(theme === 'dark' ? 'dark-theme' : 'light-theme');
+                    }
+                },
                 engine: {
                     global: {
                         urlProcessor(url, srcType) {
@@ -179,13 +200,14 @@ class QBinViewer {
                     },
                 },
                 themeSettings: {
-                    mainTheme: currentTheme,
+                    mainTheme: this.currentTheme,
                     codeBlockTheme: 'default',
                 },
             };
             window.cherry = new Cherry(cherryConfig);
             this.contentType = contentType;
         }
+        this.setupThemeListener();
     }
 
     async init() {
@@ -471,17 +493,9 @@ class QBinViewer {
         try {
             // 如果使用cherry-markdown，从实例中获取内容
             let content = '';
-            if (window.cherry) {
-                content = window.cherry.getMarkdown();
-                if (!(this.contentType?.startsWith('text/plain') || this.contentType?.includes('markdown'))) {
-                    content = content.substring(content.indexOf('\n') + 1);
-                }
-            } else {
-                // 兼容以前的方式，尝试从textarea获取内容
-                const viewer = document.getElementById('viewer');
-                if (viewer) {
-                    content = viewer.value;
-                }
+            content = window.cherry.getMarkdown();
+            if (!(this.contentType?.startsWith('text/plain') || this.contentType?.includes('markdown'))) {
+                content = content.substring(content.indexOf('\n') + 1);
             }
 
             const cacheData = {
@@ -1082,6 +1096,62 @@ class QBinViewer {
     hideLoading() {
         const loadingEls = this.cherryContainer.querySelectorAll('.loading-container');
         loadingEls.forEach(el => el.remove());
+    }
+
+    applyThemeBasedOnPreference() {
+        const userPreference = localStorage.getItem('qbin-theme') || 'system';
+        let themeToApply;
+
+        if (userPreference === 'system') {
+            // Apply theme based on system preference
+            themeToApply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        } else {
+            // Apply user's explicit choice
+            themeToApply = userPreference;
+        }
+
+        if (window.cherry && window.cherry.setTheme) {
+            // Store original theme value
+            const originalTheme = localStorage.getItem('qbin-theme');
+
+            // Apply the theme
+            window.cherry.setTheme(themeToApply);
+            window.cherry.setCodeBlockTheme(`one-${themeToApply}`);
+
+            // Restore "system" if that was the original preference
+            if (originalTheme === 'system') {
+                localStorage.setItem('qbin-theme', 'system');
+            }
+        }
+    }
+
+    setupThemeListener() {
+        // Listen for system preference changes
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', () => {
+            // Only react to system changes if the user preference is 'system'
+            if (localStorage.getItem('qbin-theme') === 'system' || !localStorage.getItem('qbin-theme')) {
+                this.applyThemeBasedOnPreference();
+            }
+        });
+
+        // Listen for explicit theme changes from other tabs/windows
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'qbin-theme') {
+                this.applyThemeBasedOnPreference();
+            }
+        });
+
+        // Setup the global theme toggler
+        if (!window.qbinToggleTheme) {
+            window.qbinToggleTheme = (theme) => {
+                localStorage.setItem('qbin-theme', theme);
+                this.applyThemeBasedOnPreference();
+            };
+        }
+
+        // Apply the initial theme
+        this.applyThemeBasedOnPreference();
     }
 }
 

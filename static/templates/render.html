@@ -10,55 +10,27 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <script>
         (function() {
-            function applyTheme() {
-                document.documentElement.classList.remove('dark-theme', 'light-theme');
-                const savedTheme = localStorage.getItem('qbin-theme') || 'system';
-                const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                if (savedTheme === 'system'){
-                    if (isDark) {
+            const savedTheme = localStorage.getItem('qbin-theme') || 'system';
+            function applyTheme(theme) {
+                document.documentElement.classList.remove('light-theme', 'dark-theme');
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                } else if (theme === 'light') {
+                    document.documentElement.classList.add('light-theme');
+                } else if (theme === 'system') {
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                         document.documentElement.classList.add('dark-theme');
                     } else {
                         document.documentElement.classList.add('light-theme');
                     }
-                    window?.cherry?.setTheme(isDark?'dark':'light');
-                    window?.cherry?.setCodeBlockTheme(isDark?'one-dark':'one-light');
-                }else {
-                    if (savedTheme === 'dark') {
-                        document.documentElement.classList.add('dark-theme');
-                        window?.cherry?.setTheme('dark');
-                        window?.cherry?.setCodeBlockTheme('one-dark');
-                    } else if (savedTheme === 'light') {
-                        document.documentElement.classList.add('light-theme');
-                        window?.cherry?.setTheme('light');
-                        window?.cherry?.setCodeBlockTheme('one-light');
-                    }
                 }
-                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-                if (metaThemeColor) {
-                    const isDark = document.documentElement.classList.contains('dark-theme');
-                    metaThemeColor.setAttribute('content', isDark ? '#121212' : '#ffffff');
-                }
+                window.dispatchEvent(new CustomEvent('themeChange'));
             }
-            applyTheme();
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-                if (localStorage.getItem('qbin-theme') === 'system' || !localStorage.getItem('qbin-theme')) {
-                    applyTheme();
-                }
-            });
-            window.addEventListener('storage', (event) => {
-                if (event.key === 'qbin-theme') {
-                    applyTheme();
-                }
-            });
-            window.addEventListener('themeChange', () => {
-                applyTheme();
-            });
-            if (!window.qbinToggleTheme) {
-                window.qbinToggleTheme = (theme) => {
-                    localStorage.setItem('qbin-theme', theme);
-                    window.dispatchEvent(new CustomEvent('themeChange'));
-                };
+            applyTheme(savedTheme);
+            if (savedTheme === 'system' && window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                    applyTheme('system');
+                });
             }
         })();
     </script>

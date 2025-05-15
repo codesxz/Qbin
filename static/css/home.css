@@ -1425,13 +1425,29 @@ select.loading {
 }
 
 .radio-option input[type="radio"]:checked + .radio-label svg {
+    stroke-width: 2px;
     transform: scale(1.1); /* 保留图标轻微放大效果 */
 }
 
 /* 活跃状态 */
-.radio-label.active-theme svg,
-.radio-label.active-editor svg {
+.radio-label.active-theme svg {
     stroke-width: 2.5px;
+}
+
+/* 移除editor选项的粗线条效果 */
+.editor-radio-group .radio-label svg {
+    stroke-width: 2px;
+}
+
+/* 确保选中状态统一 */
+.editor-radio-group .radio-option:nth-child(2) .radio-label svg {
+    stroke-width: 2px !important;
+}
+
+/* 确保Code编辑器图标的stroke-width为2 */
+.editor-radio-group .radio-option input[type="radio"]:checked + .radio-label svg {
+    stroke-width: 2px;
+    transform: scale(1.1); /* 保留图标轻微放大效果 */
 }
 
 /* 点击动画 */
@@ -1754,4 +1770,46 @@ select.loading {
         width: 24px;
         height: 24px;
     }
+}
+
+/* Token field interactive styling */
+.token-interactive {
+    transition: all 0.3s ease;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px 12px;
+    cursor: pointer;
+    color: var(--text-color);
+    font-family: monospace;
+    position: relative;
+}
+
+.token-interactive:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(33, 150, 243, 0.05);
+}
+
+.token-interactive.loading {
+    background-image: linear-gradient(90deg, 
+        var(--bg-color) 0%, 
+        rgba(33, 150, 243, 0.1) 50%, 
+        var(--bg-color) 100%);
+    background-size: 200% 100%;
+    animation: loading-animation 1.5s infinite linear;
+}
+
+.token-interactive.flash {
+    animation: flash-animation 0.6s ease;
+}
+
+@keyframes loading-animation {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
+@keyframes flash-animation {
+    0% { background-color: var(--bg-color); }
+    30% { background-color: rgba(33, 150, 243, 0.2); }
+    100% { background-color: var(--bg-color); }
 }

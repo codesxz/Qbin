@@ -1369,8 +1369,63 @@ class QBinHome {
         const copyBtn = document.getElementById('copy-token-btn');
         const tokenInput = document.getElementById('token-input');
 
+        if (tokenInput) {
+            // Add a placeholder to indicate the input is interactive
+            tokenInput.placeholder = "点击生成API Token";
+            tokenInput.style.cursor = "pointer";
+            tokenInput.classList.add("token-interactive");
+            
+            // Add click handler for the input field
+            tokenInput.addEventListener('click', async () => {
+                if (tokenInput.value.trim() === '') {
+                    // If empty, generate a new token
+                    try {
+                        tokenInput.disabled = true;
+                        tokenInput.classList.add('loading');
+                        tokenInput.placeholder = "正在生成 Token...";
+                        
+                        const response = await fetch('/api/user/token', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            credentials: 'include'
+                        });
+                        if (!response.ok) {
+                            throw new Error(await this.getErrorMessage(response));
+                        }
+
+                        const data = await response.json();
+                        if ("token" in data.data) {
+                            tokenInput.value = data.data.token;
+                            if (copyBtn) copyBtn.disabled = false;
+                            this.showToast('Token已生成，请妥善保存', 'success');
+                        } else {
+                            throw new Error('服务器返回的数据中没有Token');
+                        }
+                    } catch (error) {
+                        console.error('Token generation failed:', error);
+                        this.showToast(error.message, 'error');
+                    } finally {
+                        tokenInput.disabled = false;
+                        tokenInput.classList.remove('loading');
+                        tokenInput.placeholder = "点击生成API Token";
+                    }
+                } else {
+                    // If has content, copy the token
+                    tokenInput.select();
+                    document.execCommand('copy');
+                    window.getSelection().removeAllRanges();
+                    this.showToast('Token已复制到剪贴板', 'success');
+                    tokenInput.classList.add('flash');
+                    setTimeout(() => tokenInput.classList.remove('flash'), 600);
+                }
+            });
+        }
+
+        // Keep existing button handlers for compatibility
         if (generateBtn) {
+            generateBtn.style.display = 'none'; // Hide the generate button
             generateBtn.addEventListener('click', async () => {
+                // Original code kept for compatibility
                 try {
                     generateBtn.disabled = true;
                     generateBtn.classList.add('loading');
@@ -1388,7 +1443,7 @@ class QBinHome {
                     const data = await response.json();
                     if ("token" in data.data) {
                         tokenInput.value = data.data.token;
-                        copyBtn.disabled = false;
+                        if (copyBtn) copyBtn.disabled = false;
                         this.showToast('Token已生成，请妥善保存', 'success');
                     } else {
                         throw new Error('服务器返回的数据中没有Token');

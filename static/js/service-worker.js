@@ -3,7 +3,7 @@
  */
 
 // 定义PWA版本号 - 更新此处以触发更新
-const CACHE_VERSION = 'v1.76';
+const CACHE_VERSION = 'v1.77';
 
 // 缓存配置
 const CACHE_SETTINGS = {

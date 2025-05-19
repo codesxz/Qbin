@@ -90,9 +90,6 @@ class QBinMDEditor extends QBinEditorBase {
             float: false,
         };
 
-        // Initialize Mermaid 10.3.1 before Cherry
-        this.initializeMermaid();
-
         // TODO 实现sidebar Zen模式
         const basicConfig = {
             id: 'markdown',
@@ -188,6 +185,7 @@ class QBinMDEditor extends QBinEditorBase {
         const config = Object.assign({}, basicConfig, { value: "" });
         Cherry.usePlugin(CherryCodeBlockMermaidPlugin, {
           mermaid: window.mermaid,
+          mermaidAPI: window.mermaid,
           theme: 'default',
           sequence: {
             useMaxWidth: false,
@@ -210,254 +208,6 @@ class QBinMDEditor extends QBinEditorBase {
         return window.cherry;
     }
 
-    // Add Mermaid initialization function
-    initializeMermaid() {
-        if (!window.mermaid) {
-            console.error('Mermaid library not loaded');
-            return;
-        }
-
-        // Create a mermaid rendering container
-        const mermaidContainer = document.createElement('div');
-        mermaidContainer.id = 'mermaid-container';
-        mermaidContainer.style = 'width:1024px;height:0;visibility:hidden;position:absolute;pointer-events:none;';
-        document.body.appendChild(mermaidContainer);
-
-        // Configure Mermaid 10.x
-        window.mermaid.initialize({
-            startOnLoad: false,
-            theme: 'default',
-            securityLevel: 'loose', // Required for proper SVG manipulation
-            fontFamily: 'sans-serif',
-            altFontFamily: 'sans-serif',
-            flowchart: {
-                useMaxWidth: false,
-                htmlLabels: true,
-                curve: 'linear'
-            },
-            sequence: {
-                useMaxWidth: false,
-                showSequenceNumbers: true,
-                mirrorActors: true,
-                messageAlign: 'center'
-            },
-            logLevel: 5, // Set to error only
-            silent: true, // Completely disable logs
-            verbose: false
-        });
-
-        // Create a compatibility layer for the plugin
-        this.createMermaidCompatibilityLayer();
-
-        // Setup a global renderer that can be triggered on editor changes
-        this.setupMermaidAutoRender();
-    }
-
-    setupMermaidAutoRender() {
-        // Create a global mermaid renderer that will be triggered on editor changes
-        if (!window.qbinMermaidRenderer) {
-            window.qbinMermaidRenderer = {
-                diagramCache: new Map(),
-                pendingRenders: new Map(),
-                renderQueue: [],
-
-                // Process all diagrams that need rendering
-                processQueue: function() {
-                    if (this.renderQueue.length === 0) return;
-
-                    // Process each diagram in the queue
-                    this.renderQueue.forEach(item => {
-                        const { id, placeholder } = item;
-
-                        // If we have this diagram in cache, replace placeholder immediately
-                        if (this.diagramCache.has(id)) {
-                            this.replacePlaceholder(placeholder, this.diagramCache.get(id));
-                            return;
-                        }
-
-                        // If this diagram is already being rendered, just add the placeholder
-                        if (this.pendingRenders.has(id)) {
-                            this.pendingRenders.get(id).push(placeholder);
-                            return;
-                        }
-
-                        // Start a new render for this diagram
-                        this.pendingRenders.set(id, [placeholder]);
-                        this.renderDiagram(id);
-                    });
-
-                    // Clear the queue
-                    this.renderQueue = [];
-                },
-
-                // Replace a placeholder with rendered content
-                replacePlaceholder: function(placeholder, content) {
-                    if (!placeholder || !placeholder.parentNode) return;
-
-                    const container = document.createElement('div');
-                    container.innerHTML = content;
-                    placeholder.parentNode.replaceChild(container.firstChild, placeholder);
-                },
-
-                // Render a specific diagram by ID
-                renderDiagram: function(id) {
-                    try {
-                        const mermaidEl = document.getElementById(id);
-                        if (!mermaidEl) {
-                            this.handleRenderComplete(id, `<div class="cherry-code-block-error">Mermaid error: Element not found</div>`);
-                            return;
-                        }
-
-                        const code = mermaidEl.textContent;
-                        window.mermaid.render(id, code).then(result => {
-                            this.handleRenderComplete(id, result.svg);
-                        }).catch(error => {
-                            console.error('Mermaid rendering error:', error);
-                            this.handleRenderComplete(id, `<div class="cherry-code-block-error">Mermaid error: ${error.message || 'Unknown error'}</div>`);
-                        });
-                    } catch (error) {
-                        console.error('Error rendering mermaid diagram:', error);
-                        this.handleRenderComplete(id, `<div class="cherry-code-block-error">Mermaid error: ${error.message || 'Unknown error'}</div>`);
-                    }
-                },
-
-                // Handle completion of a diagram render
-                handleRenderComplete: function(id, content) {
-                    // Store in cache
-                    this.diagramCache.set(id, content);
-
-                    // Update all placeholders for this diagram
-                    const placeholders = this.pendingRenders.get(id) || [];
-                    placeholders.forEach(placeholder => {
-                        this.replacePlaceholder(placeholder, content);
-                    });
-
-                    // Clear pending renders for this ID
-                    this.pendingRenders.delete(id);
-                },
-
-                // Add a diagram to the render queue
-                addToQueue: function(id, placeholder) {
-                    this.renderQueue.push({ id, placeholder });
-
-                    // Process immediately if possible
-                    if (document.readyState === 'complete') {
-                        this.processQueue();
-                    } else {
-                        // Otherwise schedule processing
-                        window.requestAnimationFrame(() => this.processQueue());
-                    }
-                }
-            };
-
-            // Ensure queue is processed after the page loads
-            if (document.readyState === 'complete') {
-                window.qbinMermaidRenderer.processQueue();
-            } else {
-                window.addEventListener('load', () => {
-                    window.qbinMermaidRenderer.processQueue();
-                });
-            }
-        }
-
-        // Set up mutation observer to detect when the editor adds mermaid placeholders
-        const observer = new MutationObserver((mutations) => {
-            let foundPlaceholders = false;
-
-            mutations.forEach(mutation => {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1) { // Element node
-                            // Check if this is a mermaid loading placeholder
-                            if (node.classList && node.classList.contains('mermaid-loading')) {
-                                foundPlaceholders = true;
-                                const refId = node.getAttribute('data-mermaid-ref');
-                                if (refId) {
-                                    window.qbinMermaidRenderer.addToQueue(refId, node);
-                                }
-                            }
-
-                            // Check child nodes as well
-                            const placeholders = node.querySelectorAll('.mermaid-loading');
-                            if (placeholders.length > 0) {
-                                foundPlaceholders = true;
-                                placeholders.forEach(placeholder => {
-                                    const refId = placeholder.getAttribute('data-mermaid-ref');
-                                    if (refId) {
-                                        window.qbinMermaidRenderer.addToQueue(refId, placeholder);
-                                    }
-                                });
-                            }
-                        }
-                    });
-                }
-            });
-
-            // Process the queue if we found placeholders
-            if (foundPlaceholders && window.qbinMermaidRenderer) {
-                window.qbinMermaidRenderer.processQueue();
-            }
-        });
-
-        // Start observing the document
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    }
-
-    createMermaidCompatibilityLayer() {
-        if (!window.CherryCodeBlockMermaidPlugin) {
-            return;
-        }
-
-        // Create API adapter - Mermaid 10.x uses a Promise-based API
-        const originalRender = window.CherryCodeBlockMermaidPlugin.prototype.render;
-        window.CherryCodeBlockMermaidPlugin.prototype.render = function(code, id, instance, options) {
-            try {
-                const self = this;
-                const container = document.getElementById('mermaid-container');
-                if (!container) {
-                    return 'Error: Mermaid container not found';
-                }
-
-                // Create a unique ID for this diagram
-                const uniqueId = `mermaid-${id || Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
-
-                // If we already have this diagram rendered in cache, return it immediately
-                if (window.qbinMermaidRenderer && window.qbinMermaidRenderer.diagramCache.has(uniqueId)) {
-                    return window.qbinMermaidRenderer.diagramCache.get(uniqueId);
-                }
-
-                // Create placeholder with reference ID
-                const placeholder = `<div class="mermaid-loading" data-mermaid-ref="${uniqueId}">Loading diagram...</div>`;
-
-                // Create diagram wrapper for rendering
-                const wrapper = document.createElement('div');
-                wrapper.id = uniqueId;
-                wrapper.className = 'mermaid';
-                wrapper.textContent = code;
-                container.appendChild(wrapper);
-
-                // Add to render queue using our global renderer
-                if (window.qbinMermaidRenderer) {
-                    // Next tick to ensure the placeholder is in the DOM
-                    setTimeout(() => {
-                        const placeholders = document.querySelectorAll(`.mermaid-loading[data-mermaid-ref="${uniqueId}"]`);
-                        placeholders.forEach(placeholderEl => {
-                            window.qbinMermaidRenderer.addToQueue(uniqueId, placeholderEl);
-                        });
-                    }, 0);
-                }
-
-                return placeholder;
-            } catch (err) {
-                console.error('Error in mermaid compatibility layer:', err);
-                return `<div class="cherry-code-block-error">Mermaid error: ${err.message || String(err)}</div>`;
-            }
-        };
-    }
-
     getEditorContent() {
         return window.cherry.getMarkdown();
     }
@@ -469,7 +219,7 @@ class QBinMDEditor extends QBinEditorBase {
     setupEditorChangeListener() {
         // 监听编辑器内容变化，用于自动保存和上传
         let saveTimeout;
-        
+
         const contentChangeCallback = () => {
             // 保存到本地缓存
             clearTimeout(saveTimeout);
@@ -489,7 +239,7 @@ class QBinMDEditor extends QBinEditorBase {
 
         let lastChangeTime = 0;
         const throttleTime = 500; // 500ms节流
-        
+
         document.addEventListener('cherry:change', () => {
             const now = Date.now();
             if (now - lastChangeTime > throttleTime) {
@@ -598,7 +348,7 @@ class QBinMDEditor extends QBinEditorBase {
             });
 
             // 加密复选框交互
-            this.initializeEncryptCheckbox();
+            // this.initializeEncryptCheckbox();
 
             return true;
         };
@@ -610,16 +360,17 @@ class QBinMDEditor extends QBinEditorBase {
     }
 
     initializeEncryptCheckbox() {
-        // const checkbox = document.getElementById('encrypt-checkbox');
-        // const hiddenCheckbox = document.getElementById('encryptData');
-        // const optionToggle = document.querySelector('.option-toggle');
-        // if (optionToggle && checkbox && hiddenCheckbox) {
-        //     optionToggle.addEventListener('click', () => {
-        //         const isChecked = checkbox.classList.contains('checked');
-        //         checkbox.classList.toggle('checked');
-        //         hiddenCheckbox.checked = !isChecked;
-        //     });
-        // }
+        const checkbox = document.getElementById('encrypt-checkbox');
+        const hiddenCheckbox = document.getElementById('encryptData');
+        const optionToggle = document.querySelector('.option-toggle');
+
+        if (optionToggle && checkbox && hiddenCheckbox) {
+            optionToggle.addEventListener('click', () => {
+                const isChecked = checkbox.classList.contains('checked');
+                checkbox.classList.toggle('checked');
+                hiddenCheckbox.checked = !isChecked;
+            });
+        }
     }
 
     togglePasswordPanel(isClick = false) {
@@ -633,7 +384,7 @@ class QBinMDEditor extends QBinEditorBase {
     applyThemeBasedOnPreference() {
         const userPreference = localStorage.getItem('qbin-theme') || 'system';
         let themeToApply;
-        
+
         if (userPreference === 'system') {
             // Apply theme based on system preference
             themeToApply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -641,11 +392,11 @@ class QBinMDEditor extends QBinEditorBase {
             // Apply user's explicit choice
             themeToApply = userPreference;
         }
-        
+
         if (window.cherry && window.cherry.setTheme) {
             // Store original theme value
             const originalTheme = localStorage.getItem('qbin-theme');
-            
+
             // Apply the theme
             window.cherry.setTheme(themeToApply);
             window.cherry.setCodeBlockTheme(`one-${themeToApply}`);
@@ -681,7 +432,7 @@ class QBinMDEditor extends QBinEditorBase {
                 this.applyThemeBasedOnPreference();
             };
         }
-        
+
         // Apply the initial theme
         this.applyThemeBasedOnPreference();
     }

@@ -3,7 +3,7 @@
  */
 
 // 定义PWA版本号 - 更新此处以触发更新
-const CACHE_VERSION = 'v2.1';
+const CACHE_VERSION = 'v2.2';
 
 // 缓存配置
 const CACHE_SETTINGS = {
@@ -46,7 +46,7 @@ const RESOURCES = {
     'https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.3/dist/',
     'https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/',
     'https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/',
-    'https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/',
+    'https://cdn.jsdelivr.net/npm/mermaid@10.3.1/dist/',
     'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js',
     'https://api.dicebear.com/9.x/',
   ],

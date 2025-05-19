@@ -183,6 +183,7 @@ class QBinMDEditor extends QBinEditorBase {
             locale: locale,
         };
         const config = Object.assign({}, basicConfig, { value: "" });
+        console.log(window.mermaid)
         Cherry.usePlugin(CherryCodeBlockMermaidPlugin, {
           mermaid: window.mermaid,
           mermaidAPI: window.mermaid,

@@ -260,6 +260,17 @@
     box-sizing: border-box;
 }
 
+/* 防止输入框自动填充时显示背景色 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+    -webkit-text-fill-color: var(--input-color) !important;
+    transition: background-color 5000s ease-in-out 0s;
+    background-clip: content-box !important;
+}
+
 .title-input::placeholder {
     color: var(--input-placeholder-color, rgba(120, 120, 120, 0.6));
     font-weight: normal;
@@ -618,6 +629,18 @@
     /* 改进移动端输入框以适应更大的按钮 */
     .input-group input {
         padding-right: 46px;
+    }
+
+    /* 修复移动端title-input灰色背景问题 */
+    .title-wrapper {
+        background: none;
+    }
+    
+    .title-input {
+        background: transparent !important;
+        -webkit-appearance: none;
+        -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+        box-shadow: 0 0 0px 1000px transparent inset;
     }
 
     /* Enhanced mobile upload status positioning */

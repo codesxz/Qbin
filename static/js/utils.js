@@ -86,9 +86,9 @@ class StorageManager {
      */
     constructor(opts = {}) {
         const {
-            dbName = 'qbin',
-            version = 2,
-            storeName = 'qbin',
+            dbName = 'qbinv2',
+            version = 3,
+            storeName = 'qbinv2',
         } = opts;
 
         this.dbName = dbName;

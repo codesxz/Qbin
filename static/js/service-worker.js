@@ -3,7 +3,7 @@
  */
 
 // 定义PWA版本号 - 更新此处以触发更新
-const CACHE_VERSION = 'v2.3';
+const CACHE_VERSION = 'v2.9';
 
 // 缓存配置
 const CACHE_SETTINGS = {
@@ -183,8 +183,8 @@ self.addEventListener('fetch', event => {
 
   try {
     // CDN或跨域资源处理
-    if (isCdnResource(request.url) || url.origin !== self.location.origin) {
-      event.respondWith(handleCdnRequest(request));
+    if (url.origin !== self.location.origin) {
+      if(isCdnResource(request.url)) event.respondWith(handleCdnRequest(request));
       return;
     }
 
@@ -200,7 +200,6 @@ self.addEventListener('fetch', event => {
     if (isStaticResource(path)) {
       event.respondWith(cacheFirstStrategy(request, CACHE_NAMES.static));
     }
-    // 注释掉的代码保留，以防后续需要启用
     // else if (isRealtimeResource(path)) {
     //   event.respondWith(networkFirstStrategy(request, CACHE_NAMES.dynamic));
     // } else {
@@ -595,23 +594,26 @@ self.addEventListener('message', event => {
  */
 async function getCache(key) {
   try {
+    const dbName = 'qbinv2';
+    const version = 3;
+    const storeName = 'qbinv2';
     const db = await new Promise(resolve => {
-      const req = indexedDB.open('qbin', 2);
+      const req = indexedDB.open(dbName, version);
       req.onupgradeneeded = e => {
         const db = e.target.result;
-        if (!db.objectStoreNames.contains('qbin')) {
-          db.createObjectStore('qbin', {keyPath: 'key'});
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName, {keyPath: 'key'});
         }
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => resolve(null);
     });
-    
+
     if (!db) return null;
-    
+
     return await new Promise(resolve => {
-      const tx = db.transaction(['qbin'], 'readonly');
-      const req = tx.objectStore('qbin').get(key);
+      const tx = db.transaction([storeName], 'readonly');
+      const req = tx.objectStore(storeName).get(key);
       req.onsuccess = () => resolve(req.result ? req.result.value : null);
       req.onerror = () => resolve(null);
     });

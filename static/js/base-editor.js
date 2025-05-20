@@ -14,10 +14,10 @@ class QBinEditorBase {
     async initialize() {
         this.setupWindowsCloseSave();
         this.initializePasswordPanel();
-        this.initializeKeyAndPasswordSync();
         await this.initEditor();
         if (this.currentEditor === "multi") this.initializeUI();
         await this.loadContent();
+        this.initializeKeyAndPasswordSync();
     }
 
     async initEditor() {

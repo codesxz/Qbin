@@ -689,6 +689,7 @@ input:-webkit-autofill:active {
     gap: 8px;
     margin-top: 10px;
     padding-top: 0;
+    margin-bottom: 10px;
 }
 
 .panel-button {

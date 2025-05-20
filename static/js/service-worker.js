@@ -3,13 +3,13 @@
  */
 
 // 定义PWA版本号 - 更新此处以触发更新
-const CACHE_VERSION = 'v2.2';
+const CACHE_VERSION = 'v2.3';
 
 // 缓存配置
 const CACHE_SETTINGS = {
   // 设置为true可触发完全清理缓存（用于重大更新或修复异常情况）
   clearCaches: false,
-  // 自动更新开关，允许无需用户交互自动更新
+  // 自动更新开关
   autoUpdate: true,
   // 调试日志
   debug: false,

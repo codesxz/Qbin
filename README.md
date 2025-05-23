@@ -14,7 +14,6 @@
 [![][latest-version-shield]][latest-version-link]
 [![][github-stars-shield]][github-stars-link]
 [![][github-license-shield]][github-license-link]
-[![Telegram][telegram-shield]][telegram-url]
 
 </div>
 
@@ -190,8 +189,6 @@ docker run -d -p 8000:8000 \
 <!-- LINK GROUP -->
 [docker-pulls-link]: https://hub.docker.com/r/naiher/qbin
 [docker-pulls-shield]: https://img.shields.io/docker/pulls/naiher/qbin?style=flat-square&logo=docker&labelColor=black
-[telegram-shield]: https://img.shields.io/badge/Telegram-Join-0088cc?style=flat-square&logo=telegram&labelColor=black
-[telegram-url]: https://t.me/+eNkNp6UzSD5hYTIx
 [latest-version-shield]: https://img.shields.io/github/v/release/quick-Bin/qbin?style=flat-square&label=latest%20version&labelColor=black
 [latest-version-link]: https://github.com/Quick-Bin/Qbin/releases
 [github-stars-shield]: https://img.shields.io/github/stars/quick-bin/qbin?style=flat-square&logo=github&labelColor=black

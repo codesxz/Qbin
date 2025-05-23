@@ -118,8 +118,16 @@ class QBinEditorBase {
         // 路径中已带有效 key
         if (pathKey && pathKey.length >= 2) {
             const byKey = await storage.getCache(this.CACHE_KEY + pathKey);
-            if(byKey) byKey.pwd = pathPwd;
-            return byKey || {key: pathKey, pwd: pathPwd};
+            if(byKey) {
+                // 只有当URL中明确提供了密码时，才使用URL中的密码
+                // 否则使用缓存中保存的密码
+                if(pathPwd) {
+                    byKey.pwd = pathPwd;
+                }
+                return byKey;
+            }
+            // 如果没有缓存，返回URL中的信息
+            return {key: pathKey, pwd: pathPwd};
         }
 
         // Session 中有最近一次记录

@@ -49,8 +49,6 @@ export async function isCached(key: string, pwd?: string | undefined, repo): Pro
   }
 
   const cacheKey = new Request(`http://qbinv7/p/${key}`);
-  console.log(key);
-  console.log(cacheKey);
   const cacheData = await cache.match(cacheKey);
   if (cacheData){
     const content = await cacheData.arrayBuffer();

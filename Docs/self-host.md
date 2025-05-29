@@ -81,7 +81,7 @@ Deno Deploy部署方式需要手动创建 PostgreSQL 数据库。如果你没有
 | [Neon](https://neon.tech/) | 免费 0.5 GB 空间 | 弹性扩展，零停机时间，开发者友好 |
 
 
-## 🖥️ Deno CLI 本地部署
+## 🖥️ Deno CIL 本地部署
 
 适合开发环境和本地测试，快速启动和调试：
 

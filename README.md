@@ -178,13 +178,10 @@ docker run -d -p 8000:8000 \
 本项目采用 [GPL-3.0](LICENSE) 协议开源，欢迎自由使用与二次开发。  
 让我们共建开放、高效的云上存储与分享新生态！
 
-## History
-<a href="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history?repo_id=951259895" target="_blank" style="display: block" align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history/thumbnail.png?repo_id=951259895&image_size=auto&color_scheme=dark" width="721" height="auto">
-    <img alt="Star History of Quick-Bin/qbin" src="https://next.ossinsight.io/widgets/official/analyze-repo-stars-history/thumbnail.png?repo_id=951259895&image_size=auto&color_scheme=light" width="721" height="auto">
-  </picture>
-</a>
+
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/Quick-Bin/qbin.svg?variant=adaptive)](https://starchart.cc/Quick-Bin/qbin)
+
 
 <!-- LINK GROUP -->
 [docker-pulls-link]: https://hub.docker.com/r/naiher/qbin

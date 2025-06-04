@@ -181,9 +181,9 @@ class QBinMDEditor extends QBinEditorBase {
             isPreviewOnly: false,
             autoScrollByHashAfterInit: true,
             locale: locale,
+            fileUpload: this.myFileUpload.bind(this),
         };
         const config = Object.assign({}, basicConfig, { value: "" });
-        console.log(window.mermaid)
         Cherry.usePlugin(CherryCodeBlockMermaidPlugin, {
           mermaid: window.mermaid,
           mermaidAPI: window.mermaid,
@@ -436,6 +436,72 @@ class QBinMDEditor extends QBinEditorBase {
 
         // Apply the initial theme
         this.applyThemeBasedOnPreference();
+    }
+
+    async myFileUpload(file, callback) {
+        try {
+            const mainType = file.type.split('/')[0];
+            const mimetype = file.type || 'application/octet-stream';
+            
+            const keyInput = document.getElementById('key-input');
+            const pwd = this.currentPath.key || keyInput?.value?.trim() || API.generateKey(6);
+            const key = `file-${mainType}-${Date.now()}`;
+
+            this.updateUploadStatus(`正在上传 ${file.name}...`, 'loading');
+            
+            const success = await API.uploadContent(file, key, pwd, mimetype, file.name);
+            
+            if (success) {
+                // 构建文件访问 URL
+                const baseUrl = window.location.origin;
+                const url = `/r/${key}/${pwd}`;
+                
+                // 成功回调
+                this.updateUploadStatus(`${file.name} 上传成功`, 'success');
+                
+                // 根据文件类型返回不同的配置
+                if (mainType === "video") {
+                    callback(url, {
+                        name: file.name,
+                        isShadow: true, // 是否显示阴影，默认false
+                        isRadius: true, // 是否显示圆角，默认false
+                    });
+                } else if (mainType === "image") {
+                    callback(url, {
+                        name: file.name,
+                        isShadow: true, // 是否显示阴影，默认false
+                        width: '80%', // 图片的宽度，默认100%，可配置百分比，也可配置像素值
+                    });
+                } else {
+                    // 其他文件类型
+                    callback(url, {
+                        name: file.name,
+                        size: file.size,
+                    });
+                }
+                
+                // 清除状态提示
+                setTimeout(() => {
+                    this.updateUploadStatus('');
+                }, 2000);
+            } else {
+                throw new Error('上传失败');
+            }
+        } catch (error) {
+            console.error('文件上传失败:', error);
+            this.updateUploadStatus(`上传失败: ${error.message}`, 'error');
+            
+            // 清除错误提示
+            setTimeout(() => {
+                this.updateUploadStatus('');
+            }, 5000);
+            
+            // 通知编辑器上传失败
+            callback('', {
+                error: true,
+                message: error.message
+            });
+        }
     }
 }
 

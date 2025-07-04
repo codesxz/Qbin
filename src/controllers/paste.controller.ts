@@ -258,8 +258,8 @@ async function assembleMetadata(
   }
 
   const payload = ctx.state.session?.get("user");
-  // const clientIp = headers.get("cf-connecting-ip") || req.ip;
-  const clientIp = req.ip;
+  const clientIp = headers.get("cf-connecting-ip") || req.ip;
+  // const clientIp = req.ip;
   return {
     fkey: key,
     title: title,

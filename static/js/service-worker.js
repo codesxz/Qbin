@@ -3,7 +3,7 @@
  */
 
 // 定义PWA版本号 - 更新此处以触发更新
-const CACHE_VERSION = 'v2.14';
+const CACHE_VERSION = 'v2.15';
 
 // 缓存配置
 const CACHE_SETTINGS = {
@@ -43,7 +43,7 @@ const RESOURCES = {
   // CDN资源
   cdn: [
     'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/',
-    'https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.3/dist/',
+    'https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.4/dist/',
     'https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/',
     'https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/',
     'https://cdn.jsdelivr.net/npm/mermaid@10.3.1/dist/',
@@ -52,8 +52,8 @@ const RESOURCES = {
   ],
   // 关键CDN资源（预缓存）
   criticalCdn: [
-    'https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.3/dist/cherry-markdown.core.js',
-    'https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.3/dist/cherry-markdown.min.css',
+    'https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.4/dist/cherry-markdown.core.js',
+    'https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.4/dist/cherry-markdown.min.css',
     'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.css',

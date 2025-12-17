@@ -768,3 +768,87 @@ input:-webkit-autofill:active {
     border-color: var(--section-border);
     box-shadow: var(--section-hover-shadow);
 }
+/* 域名过期通知横幅 */
+.domain-expiry-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right:  0;
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #000;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 9999;
+    animation: slideDown 0.3s ease-out;
+}
+
+. dark-theme .domain-expiry-banner {
+    background: linear-gradient(135deg, #e65100 0%, #d84315 100%);
+    color: #fff;
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex:  1;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.banner-content svg {
+    flex-shrink: 0;
+}
+
+.banner-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.banner-close:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+.dark-theme .banner-close:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 为页面内容添加顶部间距，避免被横幅遮挡 */
+body. has-banner {
+    padding-top: 60px;
+}
+
+@media (max-width: 768px) {
+    .domain-expiry-banner {
+        padding: 10px 15px;
+    }
+    . banner-content {
+        font-size: 13px;
+        gap: 8px;
+    }
+    body.has-banner {
+        padding-top: 70px;
+    }
+}

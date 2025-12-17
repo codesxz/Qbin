@@ -5,7 +5,7 @@
     <meta charset=UTF-8>
     <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name=viewport>
     <link href=/static/css/render.css rel=stylesheet>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.4/dist/cherry-markdown.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/cherry-markdown@0.10.0/dist/cherry-markdown.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <script>
@@ -37,9 +37,9 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/echarts.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.3.1/dist/mermaid.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.4/dist/cherry-markdown.core.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.4/dist/addons/cherry-code-block-mermaid-plugin.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cherry-markdown@0.9.4/dist/addons/advance/cherry-table-echarts-plugin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cherry-markdown@0.10.0/dist/cherry-markdown.core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cherry-markdown@0.10.0/dist/addons/cherry-code-block-mermaid-plugin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cherry-markdown@0.10.0/dist/addons/advance/cherry-table-echarts-plugin.js"></script>
     <script src=/static/js/utils.js defer></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" async></script>
     <script src=/static/js/render.js defer></script>
@@ -57,6 +57,23 @@
     <script src=/static/js/pwa-handler.js defer></script>
 </head>
 <body>
+<!-- 域名过期通知横幅 -->
+<div id="domain-expiry-banner" class="domain-expiry-banner">
+    <div class="banner-content">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>📢 重要通知：qbin.me 域名将于本月底（2025年12月31日）过期。由于这是纯公益项目且无赞助支持，暂不续费。建议您及时备份数据，或参考文档自行部署（支持Docker一键部署）。感谢您的理解与支持！</span>
+    </div>
+    <button id="close-banner-btn" class="banner-close" aria-label="关闭通知">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
+</div>
 <div class="header" id="buttonBar" role="toolbar" aria-label="Actions toolbar">
 </div>
 <div id="qbin-viewer" class="content" role="main"></div>

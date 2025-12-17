@@ -670,3 +670,28 @@ const ClipboardUtil = {
         return modal;
     }
 };
+// 域名过期横幅功能
+(function() {
+    const BANNER_DISMISSED_KEY = 'qbin-domain-banner-dismissed';
+    const banner = document.getElementById('domain-expiry-banner');
+    const closeBtn = document.getElementById('close-banner-btn');
+
+    // 检查用户是否已关闭横幅
+    if (localStorage.getItem(BANNER_DISMISSED_KEY) === 'true') {
+        banner.style.display = 'none';
+        return;
+    }
+
+    // 显示横幅时给body添加padding
+    document.body.classList.add('has-banner');
+
+    // 关闭横幅
+    closeBtn.addEventListener('click', function() {
+        banner.style. animation = 'slideUp 0.3s ease-out';
+        setTimeout(() => {
+            banner.style.display = 'none';
+            document.body.classList.remove('has-banner');
+        }, 300);
+        localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
+    });
+})();

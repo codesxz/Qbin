@@ -3,7 +3,7 @@
  */
 
 // 定义PWA版本号 - 更新此处以触发更新
-const CACHE_VERSION = 'v2.16';
+const CACHE_VERSION = 'v2.17';
 
 // 缓存配置
 const CACHE_SETTINGS = {
@@ -15,9 +15,9 @@ const CACHE_SETTINGS = {
   debug: false,
   // 过期时间（单位：天）
   expiration: {
-    static: 30,
-    dynamic: 7,
-    cdn: 90
+    static: 99999,
+    dynamic: 99999,
+    cdn: 99999
   }
 };
 

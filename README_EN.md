@@ -8,7 +8,6 @@
   [English] · [**简体中文**](README.md) · [Demo Website](https://qbin.me) · [Documentation](Docs/document.md) · [Self-hosting Guide](Docs/self-host.md) · [REST API](Docs/REST%20API.md) 
 </div>
 
-
 ## 🖼️ Feature Preview
 Mobile
 ---

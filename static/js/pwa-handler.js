@@ -4,8 +4,8 @@
 (function() {
     // 客户端配置
     const PWA_CONFIG = {
-        version: '1.6',                // 客户端版本号 - 用于service worker注册的缓存控制
-        autoUpdateInterval: 3600 * 1000  // 自动检查更新间隔（毫秒）
+        version: '1.4',                // 客户端版本号 - 用于service worker注册的缓存控制
+        autoUpdateInterval: 60 * 1000  // 自动检查更新间隔（毫秒）
     };
     
     // 环境检测
